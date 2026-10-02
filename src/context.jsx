@@ -30,6 +30,9 @@ export function AppProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [modal, setModal] = useState(null);
   const [route, setRoute] = useState({ tab: 'overview' });
+  // Opponent ('f:<id>') someone wanted to compare against before they had a result of their own;
+  // Import continues to that comparison once a result is added.
+  const [pendingCompare, setPendingCompare] = useState(null);
 
   const systemDark = useSystemDark();
   const theme = settings.theme === 'system' ? (systemDark ? 'dark' : 'light') : settings.theme;
@@ -78,6 +81,8 @@ export function AppProvider({ children }) {
     openModal: setModal,
     closeModal: () => setModal(null),
     route,
+    pendingCompare,
+    setPendingCompare,
     go: (tab, params = {}) => {
       setRoute({ tab, ...params });
       window.scrollTo({ top: 0, behavior: 'smooth' });

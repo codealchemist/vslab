@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Swords, Crown, Trophy, Share2, Sparkles, Upload, FileText, Sheet, Trash2, Equal, Info } from 'lucide-react';
+import { Swords, Crown, Trophy, Share2, Sparkles, Upload, FileText, Sheet, Trash2, Equal, Info, Eye } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { compareResults } from '../lib/evaluate.js';
 import { CATEGORIES } from '../data/biomarkers.js';
@@ -182,6 +182,11 @@ export default function Compare() {
                   </optgroup>
                 )}
               </select>
+              {b.friend && (
+                <button className="icon-btn" title={t('sharedView.view')} aria-label={t('sharedView.view')} onClick={() => go('shared', { friendId: b.friend.id })}>
+                  <Eye size={16} />
+                </button>
+              )}
               {b.friend && (
                 <button
                   className="icon-btn"
