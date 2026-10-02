@@ -9,8 +9,13 @@ import { ScoreRing, StatusPill, RangeBar, InfoButton, SectionActions, useDeleteR
 import { useInfo } from '../components/info.jsx';
 import ShareDialog from '../components/ShareDialog.jsx';
 
-export default function ResultDetail({ result }) {
-  const { t, lang, standard, sexOverride, go, openModal } = useApp();
+/**
+ * Detail page for one lab result. Your own results get Share / Delete; a friend's result
+ * (`shared` = { by, actions, notice }) is read-only, uses the sex from their report and shows `shared.actions`.
+ */
+export default function ResultDetail({ result, shared }) {
+  const { t, lang, standard, sexOverride: ownSex, go, openModal } = useApp();
+  const sexOverride = shared ? null : ownSex;
   const info = useInfo();
   const deleteResult = useDeleteResult();
   const [q, setQ] = useState('');
@@ -49,6 +54,11 @@ export default function ResultDetail({ result }) {
           <button className="btn ghost sm" onClick={() => go('overview')} style={{ marginLeft: -10, marginBottom: 8 }}>
             <ChevronLeft size={15} /> {t('common.back')}
           </button>
+          {shared && (
+            <div className="wizard-kicker" style={{ marginBottom: 4 }}>
+              {shared.by ? t('sharedView.sharedBy', { name: shared.by }) : t('sharedView.sharedAnon')}
+            </div>
+          )}
           <div className="row">
             <h1>{fmtDate(result.date, lang, { year: 'numeric', month: 'long', day: 'numeric' })}</h1>
             <InfoButton onClick={() => info.labTest(result, ev)} label={t('detail.about')} />
@@ -58,18 +68,20 @@ export default function ResultDetail({ result }) {
             {result.sample && <span className="badge" style={{ marginLeft: 8 }}>{t('common.sample')}</span>}
           </p>
         </div>
-        <div className="row wrap">
-          <button className="btn" onClick={() => openModal(<ShareDialog result={result} />)}>
-            <Share2 size={15} /> {t('common.share')}
-          </button>
-          <button
-            className="btn ghost danger"
-            onClick={() => deleteResult(result, () => go('overview'))}
-          >
-            <Trash2 size={15} /> {t('common.delete')}
-          </button>
-        </div>
+        {shared ? (
+          <div className="row wrap">{shared.actions}</div>
+        ) : (
+          <div className="row wrap">
+            <button className="btn" onClick={() => openModal(<ShareDialog result={result} />)}>
+              <Share2 size={15} /> {t('common.share')}
+            </button>
+            <button className="btn ghost danger" onClick={() => deleteResult(result, () => go('overview'))}>
+              <Trash2 size={15} /> {t('common.delete')}
+            </button>
+          </div>
+        )}
       </div>
+      {shared?.notice}
 
       <div className="card" ref={tableRef}>
         <div className="hero" style={{ marginBottom: 20 }}>

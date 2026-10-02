@@ -53,7 +53,7 @@ function Stepper({ step, onBack }) {
 }
 
 export default function Import() {
-  const { t, lang, results, setResults, standard, updateSettings, toast, go } = useApp();
+  const { t, lang, results, setResults, standard, updateSettings, toast, go, pendingCompare, setPendingCompare } = useApp();
   const [step, setStep] = useState(0);
   const [promptCopied, setPromptCopied] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
@@ -117,7 +117,12 @@ export default function Import() {
     const reportSex = [...incoming].sort((a, b) => a.date.localeCompare(b.date)).findLast((r) => r.patient.sex)?.patient.sex;
     if (reportSex) updateSettings({ sex: reportSex });
     toast(t('toast.imported', { count: incoming.length }) + (sampleCount ? ` · ${t('toast.samplesRemoved')}` : ''));
-    go('overview', incoming.length === 1 ? { resultId: incoming[0].id } : {});
+    if (pendingCompare) {
+      setPendingCompare(null);
+      go('compare', { opponent: pendingCompare });
+    } else {
+      go('overview', incoming.length === 1 ? { resultId: incoming[0].id } : {});
+    }
   };
 
   /** Back / forward bar shared by every step; forward is always the step's own action. */
