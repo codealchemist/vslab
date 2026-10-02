@@ -5,6 +5,7 @@ import { downloadFile } from '../lib/export.js';
 import { appUrl } from '../lib/share.js';
 import { copyText } from '../lib/clipboard.js';
 import { LANGS } from '../i18n/index.js';
+import { APP_VERSION } from '../version.js';
 import { Menu, useConfirm } from './ui.jsx';
 import { useInfo } from './info.jsx';
 
@@ -155,6 +156,7 @@ function SettingsMenu() {
             <Trash2 size={16} style={{ color: 'var(--crit)' }} /> {t('settings.wipe')}
           </button>
           <p className="tiny muted" style={{ padding: '6px 10px 4px' }}>{t('settings.storageNote')}</p>
+          <p className="tiny muted num" style={{ padding: '0 10px 4px' }}>{t('footer.version', { version: APP_VERSION })}</p>
         </div>
       )}
     </Menu>

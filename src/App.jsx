@@ -5,6 +5,7 @@ import { parseShareHash, downloadShare, resultFingerprint } from './lib/share.js
 import { uid, fmtDate } from './lib/format.js';
 import { MAX_FRIENDS } from './lib/storage.js';
 import Header from './components/Header.jsx';
+import { APP_VERSION } from './version.js';
 import { Modal, Toasts } from './components/ui.jsx';
 import Overview from './views/Overview.jsx';
 import Timeline from './views/Timeline.jsx';
@@ -141,7 +142,8 @@ export default function App() {
         <View key={route.tab + (route.resultId || '')} />
         <footer className="footer">
           <ShieldAlert size={14} />
-          <span>{t('footer.disclaimer')}</span>
+          <span className="grow">{t('footer.disclaimer')}</span>
+          <span className="version num" title={t('footer.version', { version: APP_VERSION })}>VSLab v{APP_VERSION}</span>
         </footer>
       </main>
       {modal}
