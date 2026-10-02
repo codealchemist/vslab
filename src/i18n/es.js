@@ -313,6 +313,7 @@ export default {
     wiped: 'Todos los datos eliminados',
   },
   footer: {
+    version: 'VSLab versión {{version}}',
     disclaimer: 'VSLab es una herramienta educativa, no un dispositivo médico. Los rangos de referencia son adaptaciones simplificadas de guías públicas. Comenta siempre tus resultados con un profesional sanitario.',
   },
 };

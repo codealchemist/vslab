@@ -6,7 +6,10 @@ Compare your lab results over time and with friends. Built with Vite, React, Cha
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # static site in dist/
+npm run deploy   # build + publish to Netlify production
 ```
+
+The app shows its version (from `package.json`) in the footer and the settings menu. Bump it with `npm version patch|minor|major` before deploying.
 
 ## How it works
 
@@ -24,7 +27,13 @@ npm run build    # static site in dist/
 - Blobs are stored in the `shared-results` store under `YYYY-MM-DD/HH/<guid>` (UTC creation hour). A lookup only checks the current and previous hour folders.
 - The payload format and its validation are in `src/lib/shareSchema.js`, used by both the browser and the function.
 
-Deploy by connecting the repo to Netlify (`netlify.toml` sets the build, publish directory and functions). Blobs need no setup. For local development with the API, use the Netlify CLI: `npx netlify dev` (http://localhost:8888). Plain `npm run dev` works too, but sharing then falls back to offline links.
+Deploy from your machine with `npm run deploy`. It runs `netlify deploy --build --prod` through `npx`, which builds the site and functions with the `netlify.toml` settings and publishes them to production. The first time, sign in and link the folder to your site with `npx netlify-cli login` and `npx netlify-cli link` (or `npx netlify-cli init` to create a new site).
+
+Or deploy by connecting the repo to Netlify (`netlify.toml` sets the build, publish directory and functions). Blobs need no setup. For local development with the API, use the Netlify CLI: `npx netlify dev` (http://localhost:8888). Plain `npm run dev` works too, but sharing then falls back to offline links.
+
+## Social previews
+
+`index.html` has Open Graph and Twitter tags pointing at `public/og-image.png` (1200×630, dark). Crawlers need absolute URLs, so `%SITE_URL%` is filled in at build time from Netlify's `URL` variable. Set `SITE_URL` to override it, e.g. for a custom domain. To change the image or the touch icon, edit the SVG in `scripts/build-og.mjs` and run `npm run og`.
 
 Code map: `src/data` (biomarker catalog, standards, AI prompt, sample data), `src/lib` (evaluation, validation, sharing, exports), `src/views`, `src/charts`, `src/i18n`.
 
