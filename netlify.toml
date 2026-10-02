@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# `netlify dev` runs Vite and the functions together on http://localhost:8888
+[dev]
+  command = "npm run dev"
+  targetPort = 5173
+  framework = "#custom"

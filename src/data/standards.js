@@ -1,0 +1,305 @@
+// Reference standards used to evaluate results.
+//
+// Each range is { lo, hi, olo, ohi, blo, bhi } (any can be omitted):
+//   lo/hi   – acceptable reference interval
+//   olo/ohi – optimal band inside it (defaults to lo/hi)
+//   blo/bhi – borderline zone outside it (defaults to ±10 %)
+// Sex-specific ranges are written as { m: {...}, f: {...} }.
+//
+// Values are adult, simplified adaptations of each organization's published
+// cut-offs, meant for education and comparison — not for diagnosis.
+// Biomarkers a standard does not cover fall back to CONVENTIONAL ranges.
+
+export const CONVENTIONAL = {
+  glucose: { lo: 70, hi: 99 },
+  hba1c: { lo: 4.0, hi: 5.6 },
+  insulin: { lo: 2.6, hi: 24.9 },
+  total_cholesterol: { hi: 199, bhi: 239 },
+  ldl: { hi: 129, ohi: 99, bhi: 159 },
+  hdl: { m: { lo: 40 }, f: { lo: 50 } },
+  triglycerides: { hi: 149, bhi: 199 },
+  non_hdl: { hi: 129, bhi: 159 },
+  tg_hdl_ratio: { hi: 3.0, ohi: 2.0, bhi: 4.0 },
+  apob: { hi: 99, bhi: 129 },
+  lpa: { hi: 74, bhi: 124 },
+  creatinine: { m: { lo: 0.74, hi: 1.35 }, f: { lo: 0.59, hi: 1.04 } },
+  egfr: { lo: 60, olo: 90, blo: 45 },
+  bun: { lo: 7, hi: 20 },
+  uacr: { hi: 29, bhi: 299 },
+  uric_acid: { m: { lo: 3.4, hi: 7.0 }, f: { lo: 2.4, hi: 6.0 } },
+  alt: { m: { lo: 7, hi: 55 }, f: { lo: 7, hi: 45 } },
+  ast: { lo: 8, hi: 48 },
+  ggt: { m: { lo: 8, hi: 61 }, f: { lo: 5, hi: 36 } },
+  alp: { m: { lo: 40, hi: 129 }, f: { lo: 35, hi: 104 } },
+  bilirubin: { lo: 0.1, hi: 1.2 },
+  albumin: { lo: 3.5, hi: 5.0 },
+  tsh: { lo: 0.4, hi: 4.0 },
+  free_t4: { lo: 0.8, hi: 1.8 },
+  free_t3: { lo: 2.3, hi: 4.2 },
+  hemoglobin: { m: { lo: 13.2, hi: 16.6 }, f: { lo: 11.6, hi: 15.0 } },
+  hematocrit: { m: { lo: 38.3, hi: 48.6 }, f: { lo: 35.5, hi: 44.9 } },
+  rbc: { m: { lo: 4.35, hi: 5.65 }, f: { lo: 3.92, hi: 5.13 } },
+  wbc: { lo: 3.4, hi: 9.6 },
+  platelets: { lo: 150, hi: 400 },
+  mcv: { lo: 80, hi: 100 },
+  hscrp: { hi: 3.0, ohi: 0.99, bhi: 10 },
+  homocysteine: { lo: 5, hi: 15 },
+  vitamin_d: { lo: 30, hi: 100, blo: 20 },
+  b12: { lo: 200, hi: 900 },
+  folate: { lo: 3.0, hi: 20 },
+  ferritin: { m: { lo: 24, hi: 336 }, f: { lo: 11, hi: 307 } },
+  iron: { lo: 60, hi: 170 },
+  magnesium: { lo: 1.7, hi: 2.2 },
+  sodium: { lo: 135, hi: 145 },
+  potassium: { lo: 3.5, hi: 5.0 },
+  calcium: { lo: 8.6, hi: 10.3 },
+  testosterone: { m: { lo: 300, hi: 1000 }, f: { lo: 15, hi: 70 } },
+  cortisol: { lo: 5, hi: 23 },
+  ldh: { lo: 122, hi: 222 },
+  total_protein: { lo: 6.3, hi: 7.9 },
+  mch: { lo: 27, hi: 33 },
+  mchc: { lo: 32, hi: 36 },
+  rdw: { lo: 11.5, hi: 14.5 },
+  neutrophils: { lo: 1.56, hi: 6.45 },
+  lymphocytes: { lo: 0.95, hi: 3.07 },
+  monocytes: { lo: 0.26, hi: 0.81 },
+  eosinophils: { lo: 0.03, hi: 0.48 },
+  basophils: { lo: 0.01, hi: 0.08 },
+  chloride: { lo: 98, hi: 107 },
+  co2: { lo: 22, hi: 29 },
+};
+
+// Shown alongside every standard, since uncovered biomarkers fall back to these.
+export const CONVENTIONAL_SOURCES = [
+  { label: 'Mayo Clinic Laboratories — Test Catalog (adult reference values)', url: 'https://www.mayocliniclabs.com/test-catalog' },
+];
+
+export const STANDARDS = [
+  {
+    id: 'longevity',
+    sources: [
+      { label: 'ESC/EAS 2019 Guidelines for the management of dyslipidaemias (ApoB, LDL targets)', url: 'https://doi.org/10.1093/eurheartj/ehz455' },
+      { label: 'EAS 2022 consensus statement on lipoprotein(a)', url: 'https://doi.org/10.1093/eurheartj/ehac361' },
+      { label: 'AHA/CDC 2003 statement on markers of inflammation (hs-CRP)', url: 'https://doi.org/10.1161/01.CIR.0000052939.59093.45' },
+      { label: 'Endocrine Society 2024 guideline on vitamin D', url: 'https://doi.org/10.1210/clinem/dgae290' },
+    ],
+    short: { en: 'Longevity', es: 'Longevidad' },
+    org: { en: 'Current longevity medicine standards', es: 'Estándares actuales de medicina de longevidad' },
+    desc: {
+      en: 'Tighter “optimal” targets used in preventive and longevity medicine, based on large outcome studies (e.g. ApoB < 60, fasting insulin < 6, hs-CRP < 0.5). Stricter than conventional lab ranges: being merely “normal” scores lower here.',
+      es: 'Objetivos “óptimos” más estrictos usados en medicina preventiva y de longevidad, basados en grandes estudios de resultados (p. ej. ApoB < 60, insulina en ayunas < 6, PCR-us < 0,5). Más exigentes que los rangos convencionales: estar solo “normal” puntúa menos aquí.',
+    },
+    ranges: {
+      glucose: { lo: 70, hi: 99, olo: 72, ohi: 90 },
+      hba1c: { lo: 4.0, hi: 5.6, ohi: 5.3 },
+      insulin: { lo: 2, hi: 10, ohi: 6 },
+      total_cholesterol: { hi: 199, ohi: 180 },
+      ldl: { hi: 99, ohi: 70, bhi: 129 },
+      hdl: { m: { lo: 40, olo: 50, ohi: 90 }, f: { lo: 50, olo: 60, ohi: 100 } },
+      triglycerides: { hi: 149, ohi: 90 },
+      non_hdl: { hi: 129, ohi: 100 },
+      tg_hdl_ratio: { hi: 2.0, ohi: 1.5, bhi: 3.0 },
+      apob: { hi: 90, ohi: 60, bhi: 110 },
+      lpa: { hi: 124, ohi: 75, bhi: 175 },
+      egfr: { lo: 60, olo: 90, blo: 45 },
+      uric_acid: { m: { hi: 7.0, olo: 3.5, ohi: 5.5 }, f: { hi: 6.0, olo: 2.5, ohi: 5.0 } },
+      alt: { m: { hi: 40, ohi: 25 }, f: { hi: 33, ohi: 19 } },
+      ast: { hi: 40, ohi: 25 },
+      ggt: { m: { hi: 40, ohi: 20 }, f: { hi: 30, ohi: 15 } },
+      albumin: { lo: 3.5, hi: 5.0, olo: 4.2 },
+      tsh: { lo: 0.4, hi: 4.0, olo: 0.5, ohi: 2.5 },
+      wbc: { lo: 3.4, hi: 9.6, olo: 4.0, ohi: 7.0 },
+      rdw: { lo: 11.5, hi: 14.5, ohi: 13.0 },
+      hscrp: { hi: 2.0, ohi: 0.5, bhi: 3.0 },
+      homocysteine: { lo: 4, hi: 12, olo: 5, ohi: 8 },
+      vitamin_d: { lo: 30, hi: 100, olo: 40, ohi: 60, blo: 20 },
+      b12: { lo: 300, hi: 1000, olo: 500, ohi: 900, blo: 200 },
+      ferritin: { m: { lo: 30, hi: 300, olo: 50, ohi: 150 }, f: { lo: 20, hi: 200, olo: 40, ohi: 120 } },
+      magnesium: { lo: 1.8, hi: 2.4, olo: 2.0 },
+      testosterone: { m: { lo: 300, hi: 1000, olo: 500, ohi: 900 }, f: { lo: 15, hi: 70 } },
+    },
+  },
+  {
+    id: 'lab',
+    short: { en: 'Lab', es: 'Laboratorio' },
+    org: { en: 'Your laboratory’s reference ranges', es: 'Rangos de referencia de tu laboratorio' },
+    desc: {
+      en: 'Uses the reference interval printed on your own lab report for each biomarker (when the AI extracted it). These depend on the lab’s population and analytical method.',
+      es: 'Usa el intervalo de referencia impreso en tu propio informe para cada biomarcador (cuando la IA lo extrajo). Dependen de la población y el método analítico del laboratorio.',
+    },
+    ranges: {},
+    usesLabRanges: true,
+  },
+  {
+    id: 'psap',
+    sources: [
+      { label: 'American College of Clinical Pharmacy (ACCP) — PSAP', url: 'https://www.accp.com/' },
+    ],
+    short: 'PSAP',
+    org: { en: 'Pharmacotherapy Self-Assessment Program (ACCP)', es: 'Pharmacotherapy Self-Assessment Program (ACCP)' },
+    desc: {
+      en: 'Conventional clinical reference values from the American College of Clinical Pharmacy’s PSAP lab values table, widely used for drug monitoring (renal and hepatic dosing, electrolytes).',
+      es: 'Valores de referencia clínicos convencionales de la tabla de laboratorio del PSAP del American College of Clinical Pharmacy, muy usada para monitorizar fármacos (ajuste renal y hepático, electrolitos).',
+    },
+    ranges: {
+      glucose: { lo: 70, hi: 100 },
+      hba1c: { lo: 4.0, hi: 5.6 },
+      sodium: { lo: 135, hi: 145 },
+      potassium: { lo: 3.5, hi: 5.0 },
+      calcium: { lo: 8.5, hi: 10.5 },
+      magnesium: { lo: 1.6, hi: 2.4 },
+      bun: { lo: 8, hi: 25 },
+      creatinine: { m: { lo: 0.7, hi: 1.3 }, f: { lo: 0.6, hi: 1.1 } },
+      alt: { lo: 7, hi: 53 },
+      ast: { lo: 11, hi: 47 },
+      alp: { lo: 38, hi: 126 },
+      bilirubin: { lo: 0.3, hi: 1.1 },
+      albumin: { lo: 3.5, hi: 5.0 },
+      uric_acid: { lo: 3.0, hi: 7.0 },
+      tsh: { lo: 0.45, hi: 4.5 },
+      free_t4: { lo: 0.7, hi: 1.9 },
+      hemoglobin: { m: { lo: 13.8, hi: 17.2 }, f: { lo: 12.1, hi: 15.1 } },
+      hematocrit: { m: { lo: 40.7, hi: 50.3 }, f: { lo: 36.1, hi: 44.3 } },
+      wbc: { lo: 4.0, hi: 11.0 },
+      platelets: { lo: 150, hi: 450 },
+      iron: { lo: 50, hi: 175 },
+    },
+  },
+  {
+    id: 'ifcc',
+    sources: [
+      { label: 'IFCC multicenter study: common reference intervals for AST, ALT and GGT (2010)', url: 'https://doi.org/10.1515/CCLM.2010.315' },
+      { label: 'IFCC reference method for HbA1c (Hoelzel et al., 2004)', url: 'https://doi.org/10.1373/clinchem.2003.024802' },
+      { label: 'IFCC — International Federation of Clinical Chemistry and Laboratory Medicine', url: 'https://ifcc.org/' },
+    ],
+    short: 'IFCC',
+    org: { en: 'International Federation of Clinical Chemistry and Laboratory Medicine', es: 'Federación Internacional de Química Clínica y Medicina de Laboratorio' },
+    desc: {
+      en: 'Reference intervals for IFCC-standardized methods: enzymes measured at 37 °C, IDMS-traceable creatinine and HbA1c traceable to the IFCC reference (20–42 mmol/mol ≈ 4.0–6.0 %).',
+      es: 'Intervalos de referencia para métodos estandarizados por la IFCC: enzimas medidas a 37 °C, creatinina trazable a IDMS y HbA1c trazable a la referencia IFCC (20–42 mmol/mol ≈ 4,0–6,0 %).',
+    },
+    ranges: {
+      glucose: { lo: 74, hi: 106 },
+      hba1c: { lo: 4.0, hi: 6.0 },
+      alt: { m: { hi: 50 }, f: { hi: 35 } },
+      ast: { m: { hi: 50 }, f: { hi: 35 } },
+      ggt: { m: { hi: 60 }, f: { hi: 40 } },
+      alp: { m: { lo: 40, hi: 130 }, f: { lo: 35, hi: 105 } },
+      creatinine: { m: { lo: 0.67, hi: 1.17 }, f: { lo: 0.51, hi: 0.95 } },
+      bilirubin: { lo: 0.3, hi: 1.2 },
+      albumin: { lo: 3.5, hi: 5.2 },
+      sodium: { lo: 136, hi: 145 },
+      potassium: { lo: 3.5, hi: 5.1 },
+    },
+  },
+  {
+    id: 'ada',
+    sources: [
+      { label: 'ADA Standards of Care in Diabetes 2025 — Diagnosis and Classification', url: 'https://doi.org/10.2337/dc25-S002' },
+    ],
+    short: 'ADA',
+    org: { en: 'American Diabetes Association (ADA)', es: 'Asociación Americana de Diabetes (ADA)' },
+    desc: {
+      en: 'Standards of Care in Diabetes: normal fasting glucose < 100 mg/dL, prediabetes 100–125, diabetes ≥ 126; HbA1c normal < 5.7 %, prediabetes 5.7–6.4 %, diabetes ≥ 6.5 %. Also lipid and kidney screening targets.',
+      es: 'Standards of Care in Diabetes: glucosa en ayunas normal < 100 mg/dL, prediabetes 100–125, diabetes ≥ 126; HbA1c normal < 5,7 %, prediabetes 5,7–6,4 %, diabetes ≥ 6,5 %. Incluye objetivos lipídicos y renales.',
+    },
+    ranges: {
+      glucose: { lo: 70, hi: 99, bhi: 125, blo: 54 },
+      hba1c: { hi: 5.6, bhi: 6.4 },
+      ldl: { hi: 99, bhi: 129 },
+      hdl: { m: { lo: 40 }, f: { lo: 50 } },
+      triglycerides: { hi: 149, bhi: 199 },
+      uacr: { hi: 29, bhi: 299 },
+      egfr: { lo: 60, olo: 90, blo: 45 },
+    },
+  },
+  {
+    id: 'accaha',
+    sources: [
+      { label: '2018 AHA/ACC Guideline on the Management of Blood Cholesterol', url: 'https://doi.org/10.1161/CIR.0000000000000625' },
+      { label: 'AHA/CDC 2003 statement on markers of inflammation (hs-CRP)', url: 'https://doi.org/10.1161/01.CIR.0000052939.59093.45' },
+    ],
+    short: 'ACC/AHA',
+    org: { en: 'American College of Cardiology & American Heart Association', es: 'American College of Cardiology y American Heart Association' },
+    desc: {
+      en: 'Cholesterol guideline categories: LDL optimal < 100, near-optimal 100–129, borderline 130–159; HDL ≥ 60 protective; triglycerides < 150. Risk enhancers: Lp(a) ≥ 125 nmol/L, ApoB ≥ 130 mg/dL, hs-CRP ≥ 2 mg/L.',
+      es: 'Categorías de la guía de colesterol: LDL óptimo < 100, casi óptimo 100–129, límite 130–159; HDL ≥ 60 protector; triglicéridos < 150. Potenciadores de riesgo: Lp(a) ≥ 125 nmol/L, ApoB ≥ 130 mg/dL, PCR-us ≥ 2 mg/L.',
+    },
+    ranges: {
+      total_cholesterol: { hi: 199, bhi: 239 },
+      ldl: { hi: 129, ohi: 99, bhi: 159 },
+      hdl: { m: { lo: 40, olo: 60 }, f: { lo: 50, olo: 60 } },
+      triglycerides: { hi: 149, ohi: 99, bhi: 199 },
+      non_hdl: { hi: 129, bhi: 159 },
+      apob: { hi: 129, ohi: 89, bhi: 159 },
+      lpa: { hi: 124, bhi: 174 },
+      hscrp: { hi: 1.99, ohi: 0.99, bhi: 3.0 },
+    },
+  },
+  {
+    id: 'ata',
+    sources: [
+      { label: 'NHANES III thyroid reference intervals (Hollowell et al., 2002)', url: 'https://doi.org/10.1210/jcem.87.2.8182' },
+      { label: 'AACE/ATA 2012 clinical practice guidelines for hypothyroidism', url: 'https://doi.org/10.1089/thy.2012.0205' },
+    ],
+    short: 'ATA',
+    org: { en: 'American Thyroid Association (ATA)', es: 'Asociación Americana de Tiroides (ATA)' },
+    desc: {
+      en: 'Thyroid reference intervals (NHANES III, used by ATA guidance): TSH 0.45–4.12 mIU/L. TSH 4.1–10 with normal FT4 is subclinical hypothyroidism; 0.1–0.45 subclinical hyperthyroidism.',
+      es: 'Intervalos tiroideos de referencia (NHANES III, usados por la ATA): TSH 0,45–4,12 mUI/L. TSH 4,1–10 con T4L normal es hipotiroidismo subclínico; 0,1–0,45 hipertiroidismo subclínico.',
+    },
+    ranges: {
+      tsh: { lo: 0.45, hi: 4.12, blo: 0.1, bhi: 10 },
+      free_t4: { lo: 0.8, hi: 1.8 },
+      free_t3: { lo: 2.3, hi: 4.2 },
+    },
+  },
+  {
+    id: 'kdigo',
+    sources: [
+      { label: 'KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD', url: 'https://doi.org/10.1016/j.kint.2023.10.018' },
+      { label: 'KDIGO — CKD evaluation and management guideline page', url: 'https://kdigo.org/guidelines/ckd-evaluation-and-management/' },
+    ],
+    short: 'KDIGO',
+    org: { en: 'Kidney Disease: Improving Global Outcomes (KDIGO)', es: 'Kidney Disease: Improving Global Outcomes (KDIGO)' },
+    desc: {
+      en: 'CKD staging by eGFR (G1 ≥ 90 optimal, G2 60–89, G3a 45–59 borderline, < 45 out of range) and albuminuria (A1 < 30 mg/g, A2 30–300, A3 > 300), plus potassium and anemia thresholds in CKD.',
+      es: 'Estadificación de ERC por FGe (G1 ≥ 90 óptimo, G2 60–89, G3a 45–59 límite, < 45 fuera de rango) y albuminuria (A1 < 30 mg/g, A2 30–300, A3 > 300), además de umbrales de potasio y anemia en ERC.',
+    },
+    ranges: {
+      egfr: { lo: 60, olo: 90, blo: 45 },
+      uacr: { hi: 29, bhi: 299 },
+      potassium: { lo: 3.5, hi: 5.0, bhi: 5.5 },
+      calcium: { lo: 8.4, hi: 10.2 },
+      hemoglobin: { m: { lo: 13, hi: 17 }, f: { lo: 12, hi: 15.5 } },
+    },
+  },
+  {
+    id: 'who',
+    sources: [
+      { label: 'WHO 2024 guideline on haemoglobin cutoffs to define anaemia', url: 'https://www.who.int/publications/i/item/9789240088542' },
+      { label: 'WHO 2020 guideline on ferritin concentrations to assess iron status', url: 'https://www.who.int/publications/i/item/9789240000124' },
+      { label: 'WHO/IDF 2006: Definition and diagnosis of diabetes mellitus and intermediate hyperglycaemia', url: 'https://www.who.int/publications/i/item/definition-and-diagnosis-of-diabetes-mellitus-and-intermediate-hyperglycaemia' },
+    ],
+    short: { en: 'WHO', es: 'OMS' },
+    org: { en: 'World Health Organization (WHO)', es: 'Organización Mundial de la Salud (OMS)' },
+    desc: {
+      en: 'WHO thresholds: anemia Hb < 13 g/dL (men) / < 12 (women), with 11–12.9 as mild; fasting glucose < 110 normal and 110–125 impaired; ferritin < 15 ng/mL deficiency; B12 < 203 pg/mL deficiency, 203–300 marginal.',
+      es: 'Umbrales de la OMS: anemia Hb < 13 g/dL (hombres) / < 12 (mujeres), con 11–12,9 leve; glucosa en ayunas < 110 normal y 110–125 alterada; ferritina < 15 ng/mL déficit; B12 < 203 pg/mL déficit, 203–300 marginal.',
+    },
+    ranges: {
+      hemoglobin: { m: { lo: 13, hi: 17.5, blo: 11 }, f: { lo: 12, hi: 16, blo: 11 } },
+      glucose: { lo: 70, hi: 109, bhi: 125 },
+      hba1c: { hi: 6.4, ohi: 5.6, bhi: 6.5 },
+      ferritin: { m: { lo: 15, hi: 200, bhi: 300 }, f: { lo: 15, hi: 150, bhi: 200 } },
+      b12: { lo: 300, hi: 900, blo: 203 },
+      folate: { lo: 4.4, hi: 20, blo: 3 },
+      total_cholesterol: { hi: 190 },
+    },
+  },
+];
+
+/** Display name of a standard; acronyms are plain strings, the rest are { en, es }. */
+export const stdShort = (s, lang) => (typeof s.short === 'string' ? s.short : s.short[lang] || s.short.en);
+
+export const STANDARD_MAP = Object.fromEntries(STANDARDS.map((s) => [s.id, s]));
