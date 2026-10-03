@@ -115,6 +115,13 @@ export default function App() {
 
   useEffect(() => {
     const handle = () => {
+      // #friend=<id>: a saved shared lab being viewed (kept in the URL so a reload shows it again).
+      const friendId = location.hash.match(/(?:^#|&)friend=([^&]+)/)?.[1];
+      if (friendId) {
+        if (friendsRef.current.some((f) => f.id === friendId)) go('shared', { friendId });
+        else history.replaceState(null, '', location.pathname + location.search);
+        return;
+      }
       const req = parseShareHash();
       if (!req) return;
       history.replaceState(null, '', location.pathname + location.search);
@@ -132,6 +139,18 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // While a shared lab is open, the URL identifies it so a reload reopens it from local storage:
+  // #s=<link id> when it came from a hosted link (opened from the saved copy, see above), otherwise
+  // #friend=<id>. Any other view clears it, so reloading elsewhere doesn't jump back to the shared lab.
+  useEffect(() => {
+    const friend = route.tab === 'shared' && route.friendId && friends.find((f) => f.id === route.friendId);
+    const linkId = friend ? friend.shareIds?.at(-1) : route.tab === 'shared' && route.share?.shareId;
+    const want = linkId ? `#s=${linkId}` : friend ? `#friend=${friend.id}` : '';
+    const current = location.hash;
+    const stale = !want && /(?:^#|&)(s|friend)=/.test(current);
+    if ((want && current !== want) || stale) history.replaceState(null, '', location.pathname + location.search + want);
+  }, [route, friends]);
 
   return (
     <>

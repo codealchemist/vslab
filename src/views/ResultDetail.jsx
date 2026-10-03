@@ -164,8 +164,8 @@ export default function ResultDetail({ result, shared }) {
               </button>
             ))}
           </div>
-          <button className="btn sm" onClick={copySnapshot} title={t(`detail.copy_${heroView}`)}>
-            <ImageIcon size={14} /> <span className="hide-xs">{t('common.copyImage')}</span>
+          <button className="btn sm hero-copy" onClick={copySnapshot} title={t(`detail.copy_${heroView}`)} aria-label={t('common.copyImage')}>
+            <ImageIcon size={14} /> <span className="hide-phone">{t('common.copyImage')}</span>
           </button>
         </div>
         <div

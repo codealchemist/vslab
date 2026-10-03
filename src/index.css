@@ -98,6 +98,9 @@ p { margin: 0; }
   position: sticky;
   top: 0;
   z-index: 30;
+  /* Phones can draw the page behind the status bar (viewport-fit=cover): the header's background
+     fills that area and its content starts below it. 0 on screens without a status-bar inset. */
+  padding-top: env(safe-area-inset-top, 0px);
   backdrop-filter: saturate(1.4) blur(14px);
   -webkit-backdrop-filter: saturate(1.4) blur(14px);
   background: color-mix(in srgb, var(--bg) 78%, transparent);
@@ -640,9 +643,14 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .bm-you { margin-left: auto; font-size: 10.5px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 999px; background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--text); }
 
 /* ── Result hero: view toggle, copy, radar view ─────── */
-.hero-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.hero-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.hero-bar .segmented { min-width: 0; }
 .hero-radar { min-width: 0; width: 100%; }
-@media (max-width: 380px) { .hide-xs { display: none; } }
+/* Phones: the copy button shows just its icon so it fits next to the view toggle (label stays as tooltip / aria-label). */
+@media (max-width: 640px) {
+  .hide-phone { display: none; }
+  .hero-copy { width: 34px; padding: 0; }
+}
 
 /* Snapshot card (copied from the Status view) */
 .snapshot-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
@@ -666,3 +674,15 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .hero.hero-categories > .stack { position: absolute; top: 50%; left: var(--gauge-x, 12.5%); transform: translate(-50%, -50%); }
   .hero.hero-categories > .hero-radar { grid-column: 2; }
 }
+
+/* ── Keep controls inside their containers on narrow screens ── */
+/* Segmented controls scroll sideways inside their own box instead of widening the page. */
+.segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.segmented::-webkit-scrollbar { display: none; }
+.segmented button { flex: none; white-space: nowrap; }
+/* Notices with action buttons let the buttons drop to their own line when there's no room. */
+.notice:has(> .btn) { flex-wrap: wrap; }
+.notice:has(> .btn) > .grow { flex-basis: 160px; }
+
+/* Dialogs stay clear of the phone's status bar and system navigation bar. */
+.overlay { padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); }
