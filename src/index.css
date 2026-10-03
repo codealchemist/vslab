@@ -325,7 +325,8 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
 /* ── Modal ──────────────────────────────────────────── */
 .overlay {
-  position: fixed; inset: 0; z-index: 60; background: rgba(15, 15, 14, 0.35); backdrop-filter: blur(4px);
+  position: fixed; inset: 0; z-index: 60; background: rgba(15, 15, 14, 0.45);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
   display: grid; place-items: center; padding: 20px; animation: fade 0.15s ease;
 }
 .modal {
@@ -686,3 +687,11 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
 /* Dialogs stay clear of the phone's status bar and system navigation bar. */
 .overlay { padding-top: max(20px, env(safe-area-inset-top, 0px)); padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)); }
+
+/* Header menus (standard, settings) get the same dimmed, blurred backdrop as dialogs.
+   The header is lifted above it while one of its menus is open, so it stays sharp. */
+.menu-backdrop {
+  position: fixed; inset: 0; z-index: 45; background: rgba(15, 15, 14, 0.45);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade 0.15s ease;
+}
+.menu-open .header { z-index: 50; }

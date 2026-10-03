@@ -24,6 +24,7 @@ function StandardMenu() {
   return (
     <Menu
       className="header-menu"
+      backdrop
       button={({ toggle }) => (
         <button className="btn sm std-btn" onClick={toggle} title={t('standard.label')}>
           <Scale size={14} />
@@ -73,6 +74,7 @@ function SettingsMenu() {
   return (
     <Menu
       className="header-menu"
+      backdrop
       button={({ toggle }) => (
         <button className="icon-btn" onClick={toggle} aria-label={t('settings.title')} title={t('settings.title')}>
           <Settings size={18} />

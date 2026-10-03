@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   CircleCheckBig,
   CircleCheck,
@@ -141,7 +142,9 @@ export function Modal({ title, icon, kicker, onClose, children, footer, wide }) 
     };
   }, [onClose]);
   const { t } = useApp();
-  return (
+  // Rendered straight under <body> so every dialog gets the same full-page blurred backdrop,
+  // whatever part of the page opened it.
+  return createPortal(
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-label={title} style={wide ? { width: 'min(720px, 100%)' } : undefined}>
         <div className="modal-head">
@@ -159,12 +162,16 @@ export function Modal({ title, icon, kicker, onClose, children, footer, wide }) 
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
-/** Dropdown menu; `children` receives a close() callback. `className` styles the panel (e.g. header-menu). */
-export function Menu({ button, children, align = 'right', className = '' }) {
+/**
+ * Dropdown menu; `children` receives a close() callback. `className` styles the panel (e.g. header-menu).
+ * `backdrop` dims and blurs the page behind it, like a dialog; tapping it closes the menu.
+ */
+export function Menu({ button, children, align = 'right', className = '', backdrop = false }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -178,10 +185,18 @@ export function Menu({ button, children, align = 'right', className = '' }) {
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
+  // While a backdrop menu is open, <html> gets .menu-open so the header can sit above the backdrop.
+  useEffect(() => {
+    if (!open || !backdrop) return;
+    document.documentElement.classList.add('menu-open');
+    return () => document.documentElement.classList.remove('menu-open');
+  }, [open, backdrop]);
   return (
     <div className="menu-wrap" ref={ref}>
       {button({ open, toggle: () => setOpen((o) => !o) })}
       {open && <div className={`menu ${align} ${className}`}>{children(() => setOpen(false))}</div>}
+      {/* Outside the menu, so the mousedown handler above closes it when the backdrop is tapped. */}
+      {open && backdrop && createPortal(<div className="menu-backdrop" aria-hidden="true" />, document.body)}
     </div>
   );
 }
