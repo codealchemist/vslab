@@ -120,8 +120,8 @@ export default function Compare() {
     const d = tableData();
     const chartNode = chartRef.current;
     await exportPdfReport({
-      filename: `vslab-compare-${a.date}.pdf`,
-      title: `VSLab · ${t('compare.title')}`,
+      filename: `vslab42-compare-${a.date}.pdf`,
+      title: `VSLab42 · ${t('compare.title')}`,
       subtitle: `${nameA} (${fmtDate(a.date, lang)}) vs ${nameB} (${fmtDate(b.result.date, lang)}) · ${standard.short}`,
       sections: [
         {
@@ -276,7 +276,7 @@ export default function Compare() {
                 getRows={() => toTsv(tableData())}
                 exports={[
                   { label: t('common.exportPdf'), icon: FileText, run: exportPdf },
-                  { label: t('common.exportCsv'), icon: Sheet, run: () => downloadFile(`vslab-compare-${a.date}.csv`, toCsv(tableData()), 'text/csv;charset=utf-8') },
+                  { label: t('common.exportCsv'), icon: Sheet, run: () => downloadFile(`vslab42-compare-${a.date}.csv`, toCsv(tableData()), 'text/csv;charset=utf-8') },
                 ]}
               />
             </div>

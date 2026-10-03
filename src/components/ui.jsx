@@ -89,8 +89,11 @@ export function ScoreRing({ score, size = 120, stroke = 9, sub, color }) {
   );
 }
 
-/** Horizontal band showing acceptable + optimal ranges and the value marker. */
-export function RangeBar({ value, range, status }) {
+/**
+ * Horizontal band showing acceptable + optimal ranges and the value marker.
+ * `format` (value → text) adds the reference limits as labels under the track.
+ */
+export function RangeBar({ value, range, status, format }) {
   if (!range) return <div className="rangebar"><div className="track" /></div>;
   const r = expandRange(range);
   const finite = [r.lo, r.hi, r.olo, r.ohi, value].filter(Number.isFinite);
@@ -106,7 +109,7 @@ export function RangeBar({ value, range, status }) {
   const olo = Number.isFinite(r.olo) ? r.olo : min;
   const ohi = Number.isFinite(r.ohi) ? r.ohi : max;
   const w = (a, b) => `calc(${pos(b)} - ${pos(a)})`;
-  return (
+  const bar = (
     <div className="rangebar" aria-hidden>
       <div className="track" />
       <div className="band" style={{ left: pos(lo), width: w(lo, hi) }} />
@@ -114,9 +117,19 @@ export function RangeBar({ value, range, status }) {
       {Number.isFinite(value) && <div className="marker" style={{ left: pos(value), '--c': STATUS_VAR[status] }} />}
     </div>
   );
+  if (!format) return bar;
+  return (
+    <div className="rangebar-labelled">
+      {bar}
+      <div className="rangebar-labels" aria-hidden>
+        {Number.isFinite(r.lo) && <span style={{ left: pos(r.lo) }}>{format(r.lo)}</span>}
+        {Number.isFinite(r.hi) && <span style={{ left: pos(r.hi) }}>{format(r.hi)}</span>}
+      </div>
+    </div>
+  );
 }
 
-export function Modal({ title, icon, onClose, children, footer, wide }) {
+export function Modal({ title, icon, kicker, onClose, children, footer, wide }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -132,9 +145,12 @@ export function Modal({ title, icon, onClose, children, footer, wide }) {
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-label={title} style={wide ? { width: 'min(720px, 100%)' } : undefined}>
         <div className="modal-head">
-          <div className="row" style={{ gap: 10 }}>
+          <div className="row" style={{ gap: 10, minWidth: 0 }}>
             {icon}
-            <h2>{title}</h2>
+            <div className="modal-titles">
+              {kicker && <div className="modal-kicker">{kicker}</div>}
+              <h2>{title}</h2>
+            </div>
           </div>
           <button className="icon-btn" onClick={onClose} aria-label={t('common.close')}>
             <X size={18} />
@@ -147,8 +163,8 @@ export function Modal({ title, icon, onClose, children, footer, wide }) {
   );
 }
 
-/** Dropdown menu; `children` receives a close() callback. */
-export function Menu({ button, children, align = 'right' }) {
+/** Dropdown menu; `children` receives a close() callback. `className` styles the panel (e.g. header-menu). */
+export function Menu({ button, children, align = 'right', className = '' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -165,7 +181,7 @@ export function Menu({ button, children, align = 'right' }) {
   return (
     <div className="menu-wrap" ref={ref}>
       {button({ open, toggle: () => setOpen((o) => !o) })}
-      {open && <div className={`menu ${align}`}>{children(() => setOpen(false))}</div>}
+      {open && <div className={`menu ${align} ${className}`}>{children(() => setOpen(false))}</div>}
     </div>
   );
 }

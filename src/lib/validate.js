@@ -57,7 +57,7 @@ export function extractJson(text) {
 }
 
 /**
- * Parse and normalize AI-generated JSON into VSLab lab results.
+ * Parse and normalize AI-generated JSON into VSLab42 lab results.
  * Returns { results, warnings, error }.
  */
 export function parseLabJson(text) {

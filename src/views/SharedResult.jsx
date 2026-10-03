@@ -64,7 +64,13 @@ export default function SharedResult() {
 
   // Only reachable when the list is full: make room by dropping the oldest friend result.
   const replaceOldest = () => {
-    const saved = { id: uid(), sharedBy: entry.sharedBy, receivedAt: entry.receivedAt, result: entry.result };
+    const saved = {
+      id: uid(),
+      sharedBy: entry.sharedBy,
+      receivedAt: entry.receivedAt,
+      result: entry.result,
+      ...(entry.shareId && { shareIds: [entry.shareId] }),
+    };
     setFriends((fs) => [...fs.slice(1), saved]);
     toast(t('sharedView.saved'));
     go('shared', { friendId: saved.id });

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { LayoutDashboard, ChartLine, Swords, Upload, Settings, Sun, Moon, Monitor, Check, ChevronDown, Scale, Download, Trash2, Languages, FlaskConical, Info, Link2 } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { STANDARDS, stdShort } from '../data/standards.js';
@@ -6,6 +7,7 @@ import { appUrl } from '../lib/share.js';
 import { copyText } from '../lib/clipboard.js';
 import { LANGS } from '../i18n/index.js';
 import { APP_VERSION } from '../version.js';
+import BrandName from './BrandName.jsx';
 import { Menu, useConfirm } from './ui.jsx';
 import { useInfo } from './info.jsx';
 
@@ -21,6 +23,7 @@ function StandardMenu() {
   const info = useInfo();
   return (
     <Menu
+      className="header-menu"
       button={({ toggle }) => (
         <button className="btn sm std-btn" onClick={toggle} title={t('standard.label')}>
           <Scale size={14} />
@@ -30,7 +33,7 @@ function StandardMenu() {
       )}
     >
       {(close) => (
-        <div style={{ width: 320 }}>
+        <div className="std-menu">
           <div className="menu-label row between">
             {t('standard.label')}
             <button className="icon-btn sm" onClick={() => { close(); info.allStandards(); }} aria-label={t('common.explain')}>
@@ -69,6 +72,7 @@ function SettingsMenu() {
   ];
   return (
     <Menu
+      className="header-menu"
       button={({ toggle }) => (
         <button className="icon-btn" onClick={toggle} aria-label={t('settings.title')} title={t('settings.title')}>
           <Settings size={18} />
@@ -76,7 +80,7 @@ function SettingsMenu() {
       )}
     >
       {(close) => (
-        <div style={{ width: 270 }}>
+        <div className="settings-menu">
           <div className="menu-label">{t('settings.theme')}</div>
           <div style={{ padding: '2px 6px 6px' }}>
             <div className="segmented" style={{ width: '100%' }}>
@@ -136,7 +140,7 @@ function SettingsMenu() {
             className="menu-item"
             onClick={() => {
               close();
-              downloadFile(`vslab-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: 'VSLab', version: 1, results, friends }, null, 2), 'application/json');
+              downloadFile(`vslab42-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ app: 'VSLab42', version: 1, results, friends }, null, 2), 'application/json');
             }}
           >
             <Download size={16} /> {t('settings.backup')}
@@ -165,14 +169,23 @@ function SettingsMenu() {
 
 export default function Header() {
   const { t, lang, setLang, route, go } = useApp();
+  // Publish the header height as --header-h so sticky toolbars can sit right below it.
+  const headerRef = useRef(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--header-h', `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
     <>
-      <header className="header">
+      <header className="header" ref={headerRef}>
         <div className="header-inner">
           <button className="brand" onClick={() => go('overview')}>
             <span className="brand-mark"><FlaskConical size={17} strokeWidth={2.2} /></span>
             <span style={{ textAlign: 'left' }}>
-              VSLab
+              <BrandName />
               <small>{t('app.tagline')}</small>
             </span>
           </button>
@@ -186,7 +199,7 @@ export default function Header() {
           <div className="header-tools">
             <StandardMenu />
             <button
-              className="btn sm ghost"
+              className="btn sm ghost lang-btn"
               onClick={() => setLang(lang === 'es' ? 'en' : 'es')}
               title={t('settings.language')}
               aria-label={t('settings.language')}
