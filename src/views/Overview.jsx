@@ -1,12 +1,12 @@
 import { useMemo, useRef } from 'react';
-import { Upload, Sparkles, Share2, Trash2, ArrowUpRight, ArrowDownRight, Minus, FlaskConical, Info, FileText, ChartLine } from 'lucide-react';
+import { Upload, Sparkles, Share2, Trash2, ArrowUpRight, ArrowDownRight, Minus, FlaskConical, Info, FileText, ChartLine, Users } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { evaluateResult } from '../lib/evaluate.js';
 import { fmtDate } from '../lib/format.js';
 import { MAX_RESULTS } from '../lib/storage.js';
 import { sampleResults } from '../data/sample.js';
 import { exportResultPdf } from '../lib/reports.js';
-import { ScoreRing, StatusPill, InfoButton, SectionActions, STATUS_VAR, scoreStatus, useDeleteResult } from '../components/ui.jsx';
+import { ScoreRing, StatusPill, InfoButton, SectionActions, STATUS_VAR, scoreStatus, useDeleteResult, useConfirm } from '../components/ui.jsx';
 import { useInfo } from '../components/info.jsx';
 import ShareDialog from '../components/ShareDialog.jsx';
 import ScoreChart from '../charts/ScoreChart.jsx';
@@ -19,6 +19,75 @@ function MixBar({ counts, total }) {
         counts[s] ? <span key={s} style={{ width: `${(counts[s] / total) * 100}%`, background: STATUS_VAR[s] }} /> : null
       )}
     </div>
+  );
+}
+
+/** Card for one lab result (own or shared). `badges` and `actions` are extra nodes; actions don't open the card. */
+function ResultCard({ result, ev, onOpen, badges, actions }) {
+  const { t, lang } = useApp();
+  const attention = ev.counts.borderline + ev.counts.out;
+  return (
+    <div className="card result-card" role="button" tabIndex={0} onClick={onOpen} onKeyDown={(e) => e.key === 'Enter' && onOpen()}>
+      <div className="row between" style={{ alignItems: 'flex-start' }}>
+        <div>
+          <div className="date">{fmtDate(result.date, lang)}</div>
+          <div className="small muted">{result.lab || '—'}</div>
+        </div>
+        <ScoreRing score={ev.score} size={56} stroke={5} />
+      </div>
+      <MixBar counts={ev.counts} total={ev.items.length} />
+      <div className="row between">
+        <div className="row wrap" style={{ gap: 6 }}>
+          {badges}
+          <span className="badge">{t('overview.markers', { count: result.results.length })}</span>
+          {attention > 0 && <span className="badge" style={{ color: 'var(--crit)' }}>{t('overview.attention', { count: attention })}</span>}
+          {result.sample && <span className="badge accent">{t('common.sample')}</span>}
+        </div>
+        <div className="row" style={{ gap: 0 }} onClick={(e) => e.stopPropagation()}>
+          {actions}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Lab results friends shared with you: listed like imported ones (never mixed into your scores) until removed. */
+function SharedSection() {
+  const { t, friends, setFriends, standard, go } = useApp();
+  const confirm = useConfirm();
+  // Each result uses the sex from its own report, as on the shared view.
+  const evals = useMemo(() => friends.map((f) => ({ friend: f, ev: evaluateResult(f.result, standard.id, null) })), [friends, standard.id]);
+  if (!friends.length) return null;
+  return (
+    <>
+      <div className="page-head" style={{ paddingTop: 36, paddingBottom: 14 }}>
+        <h2 className="row" style={{ gap: 8 }}><Users size={18} className="muted" /> {t('overview.sharedTitle')}</h2>
+        <span className="badge">{friends.length}</span>
+      </div>
+      <div className="grid grid-auto">
+        {[...evals].sort((a, b) => b.friend.result.date.localeCompare(a.friend.result.date)).map(({ friend, ev }) => (
+          <ResultCard
+            key={friend.id}
+            result={friend.result}
+            ev={ev}
+            onOpen={() => go('shared', { friendId: friend.id })}
+            badges={<span className="badge accent">{friend.sharedBy ? t('overview.sharedBy', { name: friend.sharedBy }) : t('sharedView.sharedAnon')}</span>}
+            actions={
+              <button
+                className="icon-btn"
+                title={t('sharedView.remove')}
+                aria-label={t('sharedView.remove')}
+                onClick={() =>
+                  confirm(t('sharedView.removeConfirm'), () => setFriends((fs) => fs.filter((f) => f.id !== friend.id)), { label: t('sharedView.remove') })
+                }
+              >
+                <Trash2 size={16} />
+              </button>
+            }
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -55,7 +124,14 @@ export default function Overview() {
 
   const selected = route.resultId && results.find((r) => r.id === route.resultId);
   if (selected) return <ResultDetail result={selected} />;
-  if (!results.length) return <Empty />;
+  if (!results.length) {
+    return (
+      <>
+        <Empty />
+        <SharedSection />
+      </>
+    );
+  }
 
   const latest = evals.at(-1);
   const prev = evals.at(-2);
@@ -179,49 +255,27 @@ export default function Overview() {
         <span className="badge">{t('overview.slots', { n: results.length, max: MAX_RESULTS })}</span>
       </div>
       <div className="grid grid-auto">
-        {[...evals].reverse().map(({ result, ev }) => {
-          const attention = ev.counts.borderline + ev.counts.out;
-          return (
-            <div
-              key={result.id}
-              className="card result-card"
-              role="button"
-              tabIndex={0}
-              onClick={() => go('overview', { resultId: result.id })}
-              onKeyDown={(e) => e.key === 'Enter' && go('overview', { resultId: result.id })}
-            >
-              <div className="row between" style={{ alignItems: 'flex-start' }}>
-                <div>
-                  <div className="date">{fmtDate(result.date, lang)}</div>
-                  <div className="small muted">{result.lab || '—'}</div>
-                </div>
-                <ScoreRing score={ev.score} size={56} stroke={5} />
-              </div>
-              <MixBar counts={ev.counts} total={ev.items.length} />
-              <div className="row between">
-                <div className="row wrap" style={{ gap: 6 }}>
-                  <span className="badge">{t('overview.markers', { count: result.results.length })}</span>
-                  {attention > 0 && <span className="badge" style={{ color: 'var(--crit)' }}>{t('overview.attention', { count: attention })}</span>}
-                  {result.sample && <span className="badge accent">{t('common.sample')}</span>}
-                </div>
-                <div className="row" style={{ gap: 0 }} onClick={(e) => e.stopPropagation()}>
-                  <button className="icon-btn" title={t('common.share')} aria-label={t('common.share')} onClick={() => openModal(<ShareDialog result={result} />)}>
-                    <Share2 size={16} />
-                  </button>
-                  <button
-                    className="icon-btn"
-                    title={t('common.delete')}
-                    aria-label={t('common.delete')}
-                    onClick={() => deleteResult(result)}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {[...evals].reverse().map(({ result, ev }) => (
+          <ResultCard
+            key={result.id}
+            result={result}
+            ev={ev}
+            onOpen={() => go('overview', { resultId: result.id })}
+            actions={
+              <>
+                <button className="icon-btn" title={t('common.share')} aria-label={t('common.share')} onClick={() => openModal(<ShareDialog result={result} />)}>
+                  <Share2 size={16} />
+                </button>
+                <button className="icon-btn" title={t('common.delete')} aria-label={t('common.delete')} onClick={() => deleteResult(result)}>
+                  <Trash2 size={16} />
+                </button>
+              </>
+            }
+          />
+        ))}
       </div>
+
+      <SharedSection />
     </div>
   );
 }

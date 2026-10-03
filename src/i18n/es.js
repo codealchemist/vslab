@@ -104,6 +104,8 @@ export default {
     attention_one: '{{count}} requiere atención',
     attention_other: '{{count}} requieren atención',
     deleteConfirm: '¿Eliminar este análisis? No se puede deshacer.',
+    sharedTitle: 'Compartidos contigo',
+    sharedBy: 'Compartido por {{name}}',
     highlights: 'Destacados',
     best: 'Puntos fuertes',
     worst: 'Áreas a mejorar',

@@ -85,10 +85,14 @@ export default function SharedResult() {
         <button
           className="btn ghost danger"
           onClick={() =>
-            confirm(t('sharedView.removeConfirm'), () => {
-              setFriends((fs) => fs.filter((f) => f.id !== friend.id));
-              go('overview');
-            })
+            confirm(
+              t('sharedView.removeConfirm'),
+              () => {
+                setFriends((fs) => fs.filter((f) => f.id !== friend.id));
+                go('overview');
+              },
+              { label: t('sharedView.remove') }
+            )
           }
         >
           <Trash2 size={15} /> {t('sharedView.remove')}

@@ -104,6 +104,8 @@ export default {
     attention_one: '{{count}} needs attention',
     attention_other: '{{count}} need attention',
     deleteConfirm: 'Delete this lab result? This cannot be undone.',
+    sharedTitle: 'Shared with you',
+    sharedBy: 'Shared by {{name}}',
     highlights: 'Highlights',
     best: 'Strongest areas',
     worst: 'Focus areas',
