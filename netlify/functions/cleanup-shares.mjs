@@ -1,4 +1,4 @@
-// Hourly scheduled job: deletes shared results older than SHARE_TTL_MS (1 hour)
+// Hourly scheduled job: deletes shared results older than SHARE_TTL_MS (24 hours)
 // so the Blobs store stays small on the free plan.
 import { getStore } from '@netlify/blobs';
 import { SHARE_STORE, SHARE_TTL_MS, keyHourStart } from '../../src/lib/shareSchema.js';

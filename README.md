@@ -17,14 +17,14 @@ The app shows its version (from `package.json`) in the footer and the settings m
 - **Storage**: everything stays in `localStorage` in your browser. Nothing is sent to a server.
 - **Reference standards**: Longevity, your lab's own ranges, PSAP (ACCP), IFCC, ADA, ACC/AHA, ATA, KDIGO and WHO. These live in `src/data/standards.js`. If a standard doesn't cover a biomarker, VSLab42 uses conventional reference ranges for it and marks it in the UI.
 - **Score**: Optimal 100, In range 75, Borderline 45, Out of range 15. The global score is the average across biomarkers.
-- **Sharing**: you share one lab result at a time. *Create link* uploads it to a Netlify Function, which stores it in Netlify Blobs, and gives you a short link (`/#s=<guid>`). Your friend has **1 hour** to open it; once opened, the result is saved in their browser. If the share service can't be reached, the app offers an offline link instead, with the data compressed inside the URL (`#share=…`).
+- **Sharing**: you share one lab result at a time. *Create link* uploads it to a Netlify Function, which stores it in Netlify Blobs, and gives you a short link (`/#s=<guid>`). Your friend has **24 hours** to open it; once opened, the result is saved in their browser. If the share service can't be reached, the app offers an offline link instead, with the data compressed inside the URL (`#share=…`).
 - **Exports**: PDF report, CSV and JSON. Every card can also copy its data (as TSV) or an image to the clipboard.
 
 ## Netlify (share service)
 
 - `netlify/functions/share.mjs`: `POST /api/share` stores a result and returns `{ id, expiresAt }`; `GET /api/share/:id` returns it (404 if unknown, 410 if expired).
-- `netlify/functions/cleanup-shares.mjs`: scheduled `@hourly`, deletes blobs older than 1 hour so the free-plan storage stays small.
-- Blobs are stored in the `shared-results` store under `YYYY-MM-DD/HH/<guid>` (UTC creation hour). A lookup only checks the current and previous hour folders.
+- `netlify/functions/cleanup-shares.mjs`: scheduled `@hourly`, deletes blobs older than 24 hours (`SHARE_TTL_HOURS` in `src/lib/shareSchema.js`) so the free-plan storage stays small.
+- Blobs are stored in the `shared-results` store under `YYYY-MM-DD/HH/<guid>` (UTC creation hour). A lookup checks the hour folders from newest to oldest, at most the last 25.
 - The payload format and its validation are in `src/lib/shareSchema.js`, used by both the browser and the function.
 
 Deploy from your machine with `npm run deploy`. It runs `netlify deploy --build --prod` through `npx`, which builds the site and functions with the `netlify.toml` settings and publishes them to production. The first time, sign in and link the folder to your site with `npx netlify-cli login` and `npx netlify-cli link` (or `npx netlify-cli init` to create a new site).

@@ -9,7 +9,8 @@ export const SHARE_VERSION = 3;
 export const MAX_SHARE_BYTES = 64 * 1024;
 export const MAX_SHARE_ENTRIES = 300;
 /** How long a shared result stays available. */
-export const SHARE_TTL_MS = 60 * 60 * 1000;
+export const SHARE_TTL_HOURS = 24;
+export const SHARE_TTL_MS = SHARE_TTL_HOURS * 60 * 60 * 1000;
 /** Netlify Blobs store holding shared results. */
 export const SHARE_STORE = 'shared-results';
 

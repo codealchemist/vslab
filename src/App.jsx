@@ -4,6 +4,7 @@ import { useApp } from './context.jsx';
 import { parseShareHash, downloadShare, resultFingerprint } from './lib/share.js';
 import { uid, fmtDate } from './lib/format.js';
 import { MAX_FRIENDS } from './lib/storage.js';
+import { SHARE_TTL_HOURS } from './lib/shareSchema.js';
 import Header from './components/Header.jsx';
 import { APP_VERSION } from './version.js';
 import BrandName from './components/BrandName.jsx';
@@ -92,7 +93,7 @@ function LoadingShare({ id }) {
         )
       }
     >
-      {error === 'expired' && <p>{t('share.expired')}</p>}
+      {error === 'expired' && <p>{t('share.expired', { hours: SHARE_TTL_HOURS })}</p>}
       {error === 'failed' && <p>{t('share.fetchFailed')}</p>}
     </Modal>
   );
@@ -127,7 +128,7 @@ export default function App() {
       history.replaceState(null, '', location.pathname + location.search);
       if (req.inline) receiveRef.current(req.inline);
       else if (req.hosted) {
-        // A result saved from this link is used as-is: the hosted copy only lives for an hour.
+        // A result saved from this link is used as-is: the hosted copy is deleted after SHARE_TTL_HOURS.
         const local = friendsRef.current.find((f) => (f.shareIds || []).includes(req.hosted));
         if (local) go('shared', { friendId: local.id });
         else openModal(<LoadingShare id={req.hosted} />);

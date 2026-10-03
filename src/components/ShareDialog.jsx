@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link2, Copy, ShieldCheck, Check, Languages, Clock, CloudOff, LoaderCircle } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { buildShareUrl, hostedShareUrl, uploadShare } from '../lib/share.js';
+import { SHARE_TTL_HOURS } from '../lib/shareSchema.js';
 import { copyText } from '../lib/clipboard.js';
 import { fmtDate } from '../lib/format.js';
 import { evaluateResult } from '../lib/evaluate.js';
@@ -86,7 +87,8 @@ export default function ShareDialog({ result }) {
     }
   };
 
-  const expiresAt = link?.expiresAt && new Date(link.expiresAt).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+  // Usually tomorrow, so include the day.
+  const expiresAt = link?.expiresAt && new Date(link.expiresAt).toLocaleString(lang, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
 
   return (
     <Modal title={t('share.title')} icon={<Link2 size={18} className="muted" />} onClose={closeModal}>
@@ -148,7 +150,7 @@ export default function ShareDialog({ result }) {
           </div>
           <div className="tiny row muted" style={{ gap: 6 }}>
             {link.inline ? <CloudOff size={13} /> : <Clock size={13} />}
-            {link.inline ? t('share.inlineNote') : t('share.expires', { time: expiresAt })}
+            {link.inline ? t('share.inlineNote') : t('share.expires', { time: expiresAt, hours: SHARE_TTL_HOURS })}
           </div>
         </div>
       ) : status === 'failed' ? (
@@ -167,7 +169,7 @@ export default function ShareDialog({ result }) {
 
       <div className="notice">
         <ShieldCheck size={16} style={{ color: 'var(--accent)' }} />
-        <span className="small">{link?.inline ? t('share.privacyInline') : t('share.privacy')}</span>
+        <span className="small">{link?.inline ? t('share.privacyInline') : t('share.privacy', { hours: SHARE_TTL_HOURS })}</span>
       </div>
     </Modal>
   );

@@ -7,7 +7,7 @@ import { SHARE_VERSION, isShareId, sanitizeShare } from './shareSchema.js';
 //
 // Hosted (default)   …/#s=<guid>
 //   The result is uploaded to the share service (Netlify function + Blobs, see
-//   netlify/functions/share.mjs) and downloaded by whoever opens the link within 1 hour.
+//   netlify/functions/share.mjs) and downloaded by whoever opens the link within SHARE_TTL_HOURS (24 h).
 //
 // Inline (fallback when the service is unreachable, and links sent before it existed)
 //   …/#share=<lz-compressed payload>. The data travels inside the URL. Formats:

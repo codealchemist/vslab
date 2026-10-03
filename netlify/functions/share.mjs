@@ -1,11 +1,12 @@
 // Share API backed by Netlify Blobs.
 //   POST /api/share       body: share (see src/lib/shareSchema.js)  ->  201 { id, expiresAt }
 //   GET  /api/share/:id   ->  200 share | 404 not found | 410 expired
-// Blobs are keyed "YYYY-MM-DD/HH/<guid>" (UTC creation hour); cleanup-shares.mjs removes them after an hour.
+// Blobs are keyed "YYYY-MM-DD/HH/<guid>" (UTC creation hour); cleanup-shares.mjs removes them once older than SHARE_TTL_MS.
 import { getStore } from '@netlify/blobs';
 import {
   MAX_SHARE_BYTES,
   SHARE_STORE,
+  SHARE_TTL_HOURS,
   SHARE_TTL_MS,
   hourPrefix,
   isShareId,
@@ -45,8 +46,10 @@ async function create(req) {
 async function read(id) {
   if (!isShareId(id)) return json({ error: 'not_found' }, 404);
   const now = Date.now();
-  // Only the current and previous hour buckets can hold a live share.
-  for (const t of [now, now - HOUR]) {
+  // A live share sits in one of the last SHARE_TTL_HOURS + 1 hour buckets. Check newest first:
+  // links are usually opened soon after being created, so this tends to stop after one or two reads.
+  for (let h = 0; h <= SHARE_TTL_HOURS; h++) {
+    const t = now - h * HOUR;
     const hit = await store().getWithMetadata(`${hourPrefix(new Date(t))}/${id}`, { type: 'json' });
     if (!hit) continue;
     const created = Date.parse(hit.metadata?.createdAt);
