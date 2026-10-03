@@ -174,8 +174,8 @@ export default function Timeline() {
     }
     const r = rows();
     await exportPdfReport({
-      filename: `vslab-timeline-${new Date().toISOString().slice(0, 10)}.pdf`,
-      title: `VSLab · ${t('timeline.title')}`,
+      filename: `vslab42-timeline-${new Date().toISOString().slice(0, 10)}.pdf`,
+      title: `VSLab42 · ${t('timeline.title')}`,
       subtitle: `${t('standard.label')}: ${standard.short} · ${results.length} × ${t('overview.results').toLowerCase()}`,
       sections: [
         { title: t('timeline.scoreTrend'), kv: evals.map((ev, i) => [fmtDate(results[i].date, lang), `${ev.score ?? '—'} / 100`]) },
@@ -311,7 +311,7 @@ export default function Timeline() {
                 getRows={() => toTsv(rows())}
                 exports={[
                   { label: t('common.exportPdf'), icon: FileText, run: exportPdf },
-                  { label: t('common.exportCsv'), icon: Sheet, run: () => downloadFile('vslab-timeline.csv', toCsv(rows()), 'text/csv;charset=utf-8') },
+                  { label: t('common.exportCsv'), icon: Sheet, run: () => downloadFile('vslab42-timeline.csv', toCsv(rows()), 'text/csv;charset=utf-8') },
                 ]}
               />
               </div>

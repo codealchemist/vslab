@@ -9,9 +9,16 @@ import {
   LinearScale,
   Tooltip,
   Filler,
+  RadarController,
+  PolarAreaController,
+  RadialLinearScale,
+  ArcElement,
 } from 'chart.js';
 
-Chart.register(LineController, LineElement, PointElement, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Filler);
+Chart.register(
+  LineController, LineElement, PointElement, BarController, BarElement, CategoryScale, LinearScale, Tooltip, Filler,
+  RadarController, PolarAreaController, RadialLinearScale, ArcElement
+);
 
 Chart.defaults.font.family = "'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif";
 Chart.defaults.font.size = 11.5;

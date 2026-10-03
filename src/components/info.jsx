@@ -21,8 +21,49 @@ function BiomarkerBody({ item, code }) {
   const meta = item?.meta || getBiomarker(code);
   const resolved = item || resolveRange(code, standard.id, sexOverride || 'male');
   const range = resolved.range;
+  const unit = item?.unit || meta.unit;
+  const hasValue = item && Number.isFinite(item.value);
+  // The explanation matching the user's value is shown first and highlighted.
+  const focus = hasValue && item.status !== 'optimal' ? item.dir : null;
+  const explain = [
+    { dir: 'high', icon: TrendingUp, title: t('common.whenHigh'), text: L(meta.high, lang) },
+    { dir: 'low', icon: TrendingDown, title: t('common.whenLow'), text: L(meta.low, lang) },
+  ].sort((a, b) => (b.dir === focus) - (a.dir === focus));
+
   return (
     <>
+      {hasValue && (
+        <div className={`bm-result s-${item.status}`}>
+          <div className="tiny muted">{t('common.yourValue')}</div>
+          <div className="bm-value">
+            <span className="num">{item.qualifier || ''}{fmtNum(item.value, lang)}</span>
+            {unit && <span className="unit">{unit}</span>}
+          </div>
+          <StatusPill status={item.status} dir={item.dir} beyond={item.beyond} />
+          {item.edited && <div className="tiny muted">{t('edit.edited')} · {t('edit.aiRead', { value: item.aiValue })}</div>}
+          {range && <RangeBar value={item.value} range={range} status={item.status} format={(v) => fmtNum(v, lang)} />}
+        </div>
+      )}
+
+      <div>
+        <h4><Scale size={14} /> {t('common.currentRange', { std: standard.short })}</h4>
+        <div className="bm-ranges">
+          <div className="bm-range">
+            <span className="tiny muted">{t('common.range')}</span>
+            <span><b className="num">{fmtRange(range, lang)}</b> <span className="unit">{unit}</span></span>
+          </div>
+          {hasOptimalBand(range) && (
+            <div className="bm-range optimal">
+              <span className="tiny muted">{t('common.optimal')}</span>
+              <span><b className="num">{fmtRange(range, lang, 'optimal')}</b> <span className="unit">{unit}</span></span>
+            </div>
+          )}
+        </div>
+        <div style={{ marginTop: 6 }}>
+          <SourceNote source={resolved.source} stdShort={standard.short} />
+        </div>
+      </div>
+
       {meta.custom ? (
         <p>{t('detail.custom')}</p>
       ) : (
@@ -37,50 +78,19 @@ function BiomarkerBody({ item, code }) {
               <span>{t('common.calculatedNote', { formula: L(meta.derived.formula, lang) })}</span>
             </div>
           )}
-          <div className="grid grid-2" style={{ gap: 12 }}>
-            <div>
-              <h4><TrendingUp size={14} /> {t('common.whenHigh')}</h4>
-              <p className="small">{L(meta.high, lang)}</p>
-            </div>
-            <div>
-              <h4><TrendingDown size={14} /> {t('common.whenLow')}</h4>
-              <p className="small">{L(meta.low, lang)}</p>
-            </div>
+          <div className="bm-explain-list">
+            {explain.map((x) => (
+              <div key={x.dir} className={`bm-explain ${x.dir === focus ? `active s-${item.status}` : ''}`}>
+                <h4>
+                  <x.icon size={14} /> {x.title}
+                  {x.dir === focus && <span className="bm-you">{t('common.yourCase')}</span>}
+                </h4>
+                <p className="small">{x.text}</p>
+              </div>
+            ))}
           </div>
         </>
       )}
-      <div className="card flat" style={{ padding: 14, background: 'var(--surface-2)' }}>
-        <h4 style={{ marginBottom: 8 }}>
-          <Scale size={14} /> {t('common.currentRange', { std: standard.short })}
-        </h4>
-        <dl className="kv">
-          <dt>{t('common.range')}</dt>
-          <dd className="num">{fmtRange(range, lang)} <span className="unit">{meta.unit}</span></dd>
-          {hasOptimalBand(range) && (
-            <>
-              <dt>{t('common.optimal')}</dt>
-              <dd className="num">{fmtRange(range, lang, 'optimal')} <span className="unit">{meta.unit}</span></dd>
-            </>
-          )}
-          {item && Number.isFinite(item.value) && (
-            <>
-              <dt>{t('common.yourValue')}</dt>
-              <dd className="row" style={{ gap: 8 }}>
-                <span className="value">{fmtNum(item.value, lang)}</span>
-                <StatusPill status={item.status} dir={item.dir} beyond={item.beyond} />
-              </dd>
-            </>
-          )}
-        </dl>
-        {item && range && (
-          <div style={{ marginTop: 10 }}>
-            <RangeBar value={item.value} range={range} status={item.status} />
-          </div>
-        )}
-        <div style={{ marginTop: 8 }}>
-          <SourceNote source={resolved.source} stdShort={standard.short} />
-        </div>
-      </div>
     </>
   );
 }
@@ -140,9 +150,9 @@ function StatusLegend() {
 /** Openers for every explanation dialog in the app. */
 export function useInfo() {
   const { t, lang, openModal, closeModal, standard } = useApp();
-  const show = (title, icon, body) =>
+  const show = (title, icon, body, kicker) =>
     openModal(
-      <Modal title={title} icon={icon} onClose={closeModal}>
+      <Modal title={title} icon={icon} kicker={kicker} onClose={closeModal}>
         {body}
       </Modal>
     );
@@ -150,11 +160,7 @@ export function useInfo() {
   return {
     biomarker: (item, code) => {
       const meta = item?.meta || getBiomarker(code);
-      show(
-        L(meta.name, lang),
-        <span className="badge accent">{t(`cat.${meta.cat}`)}</span>,
-        <BiomarkerBody item={item} code={code || item.code} />
-      );
+      show(L(meta.name, lang), null, <BiomarkerBody item={item} code={code || item.code} />, t(`cat.${meta.cat}`));
     },
     standard: (id = standard.id) => {
       const s = STANDARD_MAP[id];

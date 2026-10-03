@@ -1,4 +1,4 @@
-# VSLab
+# VSLab42
 
 Compare your lab results over time and with friends. Built with Vite, React, Chart.js (react-chartjs-2), lucide icons and i18next (English / Spanish).
 
@@ -13,9 +13,9 @@ The app shows its version (from `package.json`) in the footer and the settings m
 
 ## How it works
 
-- **Import**: VSLab only accepts structured JSON. The Import page gives you a prompt to copy, links to ChatGPT and Gemini, and a place to paste or upload the JSON the AI returns. You can store up to 10 lab results.
+- **Import**: VSLab42 only accepts structured JSON. The Import page gives you a prompt to copy, links to ChatGPT and Gemini, and a place to paste or upload the JSON the AI returns. You can store up to 10 lab results.
 - **Storage**: everything stays in `localStorage` in your browser. Nothing is sent to a server.
-- **Reference standards**: Longevity, your lab's own ranges, PSAP (ACCP), IFCC, ADA, ACC/AHA, ATA, KDIGO and WHO. These live in `src/data/standards.js`. If a standard doesn't cover a biomarker, VSLab uses conventional reference ranges for it and marks it in the UI.
+- **Reference standards**: Longevity, your lab's own ranges, PSAP (ACCP), IFCC, ADA, ACC/AHA, ATA, KDIGO and WHO. These live in `src/data/standards.js`. If a standard doesn't cover a biomarker, VSLab42 uses conventional reference ranges for it and marks it in the UI.
 - **Score**: Optimal 100, In range 75, Borderline 45, Out of range 15. The global score is the average across biomarkers.
 - **Sharing**: you share one lab result at a time. *Create link* uploads it to a Netlify Function, which stores it in Netlify Blobs, and gives you a short link (`/#s=<guid>`). Your friend has **1 hour** to open it; once opened, the result is saved in their browser. If the share service can't be reached, the app offers an offline link instead, with the data compressed inside the URL (`#share=…`).
 - **Exports**: PDF report, CSV and JSON. Every card can also copy its data (as TSV) or an image to the clipboard.

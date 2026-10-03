@@ -83,10 +83,8 @@ export function AppProvider({ children }) {
     route,
     pendingCompare,
     setPendingCompare,
-    go: (tab, params = {}) => {
-      setRoute({ tab, ...params });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
+    // Scrolling to the top happens in App once the new view has rendered (see the route effect there).
+    go: (tab, params = {}) => setRoute({ tab, ...params }),
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

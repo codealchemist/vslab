@@ -7,7 +7,7 @@ export const AI_LINKS = {
 
 const catalog = BIOMARKERS.filter((m) => !m.derived).map((m) => `- ${m.code} | ${m.name.en} | ${m.unit} | ${m.aliases || ''}`).join('\n');
 
-export const AI_PROMPT = `You are a meticulous clinical-data extraction assistant. I attached a PDF (or photos) of my laboratory blood/urine test report. Extract every numeric biomarker result and normalize it for the app "VSLab".
+export const AI_PROMPT = `You are a meticulous clinical-data extraction assistant. I attached a PDF (or photos) of my laboratory blood/urine test report. Extract every numeric biomarker result and normalize it for the app "VSLab42".
 
 Return ONLY valid JSON inside a single \`\`\`json code block — no explanations before or after.
 

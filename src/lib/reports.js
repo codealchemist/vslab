@@ -22,8 +22,8 @@ export function resultRows(ev, t, lang) {
 export function exportResultPdf(result, ev, standard, t, lang, chartImage) {
   const rows = resultRows(ev, t, lang);
   return exportPdfReport({
-    filename: `vslab-${result.date}.pdf`,
-    title: `VSLab · ${t('detail.title')} ${fmtDate(result.date, lang)}`,
+    filename: `vslab42-${result.date}.pdf`,
+    title: `VSLab42 · ${t('detail.title')} ${fmtDate(result.date, lang)}`,
     subtitle: `${result.lab || ''}  ·  ${t('standard.label')}: ${standard.short} (${standard.org[lang] || standard.org.en})`,
     sections: [
       {
@@ -44,12 +44,12 @@ export function exportResultPdf(result, ev, standard, t, lang, chartImage) {
 }
 
 export function exportResultCsv(result, ev, t, lang) {
-  downloadFile(`vslab-${result.date}.csv`, toCsv(resultRows(ev, t, lang)), 'text/csv;charset=utf-8');
+  downloadFile(`vslab42-${result.date}.csv`, toCsv(resultRows(ev, t, lang)), 'text/csv;charset=utf-8');
 }
 
 export function exportResultJson(result) {
   const { id, importedAt, sample, ...clean } = result;
-  downloadFile(`vslab-${result.date}.json`, JSON.stringify({ schema: 'vslab.v1', ...clean }, null, 2), 'application/json');
+  downloadFile(`vslab42-${result.date}.json`, JSON.stringify({ schema: 'vslab.v1', ...clean }, null, 2), 'application/json');
 }
 
 const signed = (v, lang) => `${v > 0 ? '+' : v < 0 ? '−' : '±'}${fmtNum(Math.abs(v), lang, 3)}`;

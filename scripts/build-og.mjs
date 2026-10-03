@@ -41,7 +41,7 @@ function woffToTtf(buf) {
 }
 
 // resvg's Node API only loads fonts from files, so the unwrapped TTFs go to a temp folder.
-const fontDir = mkdtempSync(join(tmpdir(), 'vslab-og-'));
+const fontDir = mkdtempSync(join(tmpdir(), 'vslab42-og-'));
 const fontFiles = [400, 600, 700].map((w) => {
   const file = join(fontDir, `inter-${w}.ttf`);
   writeFileSync(file, woffToTtf(readFileSync(new URL(`../node_modules/@fontsource/inter/files/inter-latin-${w}-normal.woff`, import.meta.url))));
@@ -86,7 +86,7 @@ const OG = `
   <g transform="translate(80 96) scale(3.5)">
     <path d="${FLASK}" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <text x="80" y="330" font-family="Inter" font-weight="700" font-size="112" letter-spacing="-4" fill="#f4f4f1">VSLab</text>
+  <text x="80" y="330" font-family="Inter" font-weight="700" font-size="112" letter-spacing="-4" fill="#f4f4f1">VSLab<tspan fill="#14b8a6">42</tspan></text>
   <text x="84" y="392" font-family="Inter" font-weight="400" font-size="36" fill="#c3c2b7">Compare your lab results, beautifully</text>
 
   <!-- Feature chips -->
