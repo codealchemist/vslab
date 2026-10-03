@@ -281,8 +281,14 @@ export default function Compare() {
               />
             </div>
           </div>
-          <div className="table-wrap">
-            <table className="table">
+          {/* Phones hide the column headings, so this says which side is whose. */}
+          <div className="h2h-legend small">
+            <span><span className="win-a">●</span> {nameA}</span>
+            <span className="muted">vs</span>
+            <span>{nameB} <span className="win-b">●</span></span>
+          </div>
+          <div className="table-wrap h2h-wrap">
+            <table className="table h2h-table">
               <thead>
                 <tr>
                   <th>{t('common.biomarker')}</th>
@@ -296,19 +302,19 @@ export default function Compare() {
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.code} className="h2h-row">
-                    <td>
+                    <td className="h-name">
                       <button className="marker-name" onClick={() => info.biomarker(r.a)}>
                         {r.meta.name[lang] || r.meta.name.en} <Info size={13} data-no-capture />
                       </button>
                       <span className="tiny muted">{r.a.unit}</span>
                     </td>
-                    <td style={{ textAlign: 'right' }}><span className="value">{fmtNum(r.a.value, lang)}</span></td>
-                    <td><StatusPill status={r.a.status} compact beyond={r.a.beyond} /></td>
-                    <td className="win-cell">
+                    <td className="h-av" style={{ textAlign: 'right' }}><span className="value">{fmtNum(r.a.value, lang)}</span></td>
+                    <td className="h-ap"><StatusPill status={r.a.status} compact beyond={r.a.beyond} /></td>
+                    <td className="win-cell h-win">
                       {r.winner === 'tie' ? <Equal size={15} className="muted" aria-label={t('common.tie')} /> : <Trophy size={15} className={r.winner === 'a' ? 'win-a' : 'win-b'} aria-label={r.winner === 'a' ? nameA : nameB} />}
                     </td>
-                    <td style={{ textAlign: 'right' }}><span className="value">{fmtNum(r.b.value, lang)}</span></td>
-                    <td><StatusPill status={r.b.status} compact beyond={r.b.beyond} /></td>
+                    <td className="h-bv" style={{ textAlign: 'right' }}><span className="value">{fmtNum(r.b.value, lang)}</span></td>
+                    <td className="h-bp"><StatusPill status={r.b.status} compact beyond={r.b.beyond} /></td>
                   </tr>
                 ))}
               </tbody>

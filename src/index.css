@@ -695,3 +695,24 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); animation: fade 0.15s ease;
 }
 .menu-open .header { z-index: 50; }
+
+/* ── Compare head to head: stacked rows on phones (no sideways scrolling) ── */
+.h2h-legend { display: none; }
+@media (max-width: 640px) {
+  .h2h-legend { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 2px; margin-bottom: 4px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .h2h-legend > span:first-child, .h2h-legend > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .h2h-wrap { margin: 0; padding: 0; overflow: visible; }
+  .h2h-table, .h2h-table tbody { display: block; }
+  .h2h-table thead { display: none; }
+  /* name / [your value + status] [winner] [their value + status] */
+  .h2h-table tr { display: grid; grid-template-columns: auto auto minmax(16px, 1fr) auto auto; grid-template-areas: 'name name name name name' 'av ap win bv bp'; align-items: center; gap: 6px 6px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
+  .h2h-table tr:last-child { border-bottom: 0; }
+  .h2h-table tbody tr:hover { background: none; }
+  .h2h-table td { display: block; padding: 0; border: 0; min-width: 0; }
+  .h2h-table .h-name { grid-area: name; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .h2h-table .h-av { grid-area: av; text-align: left !important; }
+  .h2h-table .h-ap { grid-area: ap; }
+  .h2h-table .h-win { grid-area: win; width: auto; display: flex; justify-content: center; }
+  .h2h-table .h-bv { grid-area: bv; }
+  .h2h-table .h-bp { grid-area: bp; }
+}
