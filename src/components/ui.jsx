@@ -130,7 +130,11 @@ export function RangeBar({ value, range, status, format }) {
   );
 }
 
-export function Modal({ title, icon, kicker, onClose, children, footer, wide }) {
+/**
+ * Dialog. `actions` are extra header buttons beside close; `panelRef` points at the dialog panel
+ * (e.g. to copy it as an image — the header buttons are left out of the capture).
+ */
+export function Modal({ title, icon, kicker, onClose, children, footer, wide, actions, panelRef }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -146,7 +150,7 @@ export function Modal({ title, icon, kicker, onClose, children, footer, wide }) 
   // whatever part of the page opened it.
   return createPortal(
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={title} style={wide ? { width: 'min(720px, 100%)' } : undefined}>
+      <div ref={panelRef} className="modal" role="dialog" aria-modal="true" aria-label={title} style={wide ? { width: 'min(720px, 100%)' } : undefined}>
         <div className="modal-head">
           <div className="row" style={{ gap: 10, minWidth: 0 }}>
             {icon}
@@ -155,9 +159,12 @@ export function Modal({ title, icon, kicker, onClose, children, footer, wide }) 
               <h2>{title}</h2>
             </div>
           </div>
-          <button className="icon-btn" onClick={onClose} aria-label={t('common.close')}>
-            <X size={18} />
-          </button>
+          <div className="row" style={{ gap: 2, flex: 'none' }} data-no-capture>
+            {actions}
+            <button className="icon-btn" onClick={onClose} aria-label={t('common.close')}>
+              <X size={18} />
+            </button>
+          </div>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}

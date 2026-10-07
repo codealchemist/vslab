@@ -46,6 +46,7 @@ export default {
     copy: 'Copiar',
     copied: 'Copiado al portapapeles',
     copyImage: 'Copiar como imagen',
+    copyValue: 'Copiar valor',
     copyData: 'Copiar datos',
     export: 'Exportar',
     exportPdf: 'Informe PDF',

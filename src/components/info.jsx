@@ -1,9 +1,11 @@
-import { BookOpen, Scale, Gauge, FlaskConical, TrendingUp, TrendingDown, Info, ExternalLink, Library, Calculator } from 'lucide-react';
+import { useRef } from 'react';
+import { BookOpen, Scale, Gauge, FlaskConical, TrendingUp, TrendingDown, Info, ExternalLink, Library, Calculator, Copy, Image as ImageIcon } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { getBiomarker } from '../data/biomarkers.js';
 import { STANDARDS, STANDARD_MAP, CONVENTIONAL_SOURCES, stdShort } from '../data/standards.js';
 import { resolveRange, STATUS_ORDER } from '../lib/evaluate.js';
-import { fmtDate, fmtNum, fmtRange, hasOptimalBand } from '../lib/format.js';
+import { fmtDate, fmtNum, fmtRange, hasOptimalBand, beyondText } from '../lib/format.js';
+import { copyText, copyNodeImage, SQUARE_STYLE } from '../lib/clipboard.js';
 import { Modal, StatusPill, RangeBar } from './ui.jsx';
 
 const L = (obj, lang) => (obj ? obj[lang] || obj.en : '');
@@ -95,6 +97,54 @@ function BiomarkerBody({ item, code }) {
   );
 }
 
+/** One line describing a measured value, e.g. "Glucose: 105 mg/dL · Borderline · high (range: 70 – 99 mg/dL)". */
+function valueText(item, t, lang) {
+  const unit = item.unit || item.meta.unit || '';
+  const withUnit = (v) => (unit ? `${v} ${unit}` : v);
+  const status = [
+    t(`status.${item.status}`),
+    item.beyond ? beyondText(item.beyond, t, lang) : item.dir && item.status !== 'optimal' && t(`status.${item.dir}`),
+  ].filter(Boolean);
+  const range = item.range ? ` (${t('common.range').toLowerCase()}: ${withUnit(fmtRange(item.range, lang))})` : '';
+  return `${L(item.meta.name, lang)}: ${withUnit(`${item.qualifier || ''}${fmtNum(item.value, lang)}`)} · ${status.join(' · ')}${range}`;
+}
+
+/** Biomarker explanation dialog; with a measured value it can copy that value as text, or the whole panel as an image. */
+function BiomarkerDialog({ item, code, onClose }) {
+  const { t, lang, toast } = useApp();
+  const panelRef = useRef(null);
+  const meta = item?.meta || getBiomarker(code);
+  const hasValue = item && Number.isFinite(item.value);
+  const run = async (fn) => {
+    try {
+      await fn();
+      toast(t('common.copied'));
+    } catch (e) {
+      console.error(e);
+      toast(t('toast.copyFailed'), 'error');
+    }
+  };
+  // The panel scrolls inside the viewport; the copy shows all of it.
+  const captureStyle = { ...SQUARE_STYLE, maxHeight: 'none', overflow: 'visible', boxShadow: 'none', animation: 'none' };
+  const actions = (
+    <>
+      {hasValue && (
+        <button className="icon-btn" title={t('common.copyValue')} aria-label={t('common.copyValue')} onClick={() => run(() => copyText(valueText(item, t, lang)))}>
+          <Copy size={16} />
+        </button>
+      )}
+      <button className="icon-btn" title={t('common.copyImage')} aria-label={t('common.copyImage')} onClick={() => run(() => copyNodeImage(panelRef.current, undefined, captureStyle))}>
+        <ImageIcon size={16} />
+      </button>
+    </>
+  );
+  return (
+    <Modal title={L(meta.name, lang)} kicker={t(`cat.${meta.cat}`)} onClose={onClose} actions={actions} panelRef={panelRef}>
+      <BiomarkerBody item={item} code={code} />
+    </Modal>
+  );
+}
+
 function SourceLinks({ standard, compact }) {
   const { t } = useApp();
   const own = standard.sources || [];
@@ -158,10 +208,7 @@ export function useInfo() {
     );
 
   return {
-    biomarker: (item, code) => {
-      const meta = item?.meta || getBiomarker(code);
-      show(L(meta.name, lang), null, <BiomarkerBody item={item} code={code || item.code} />, t(`cat.${meta.cat}`));
-    },
+    biomarker: (item, code) => openModal(<BiomarkerDialog item={item} code={code || item.code} onClose={closeModal} />),
     standard: (id = standard.id) => {
       const s = STANDARD_MAP[id];
       show(

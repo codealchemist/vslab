@@ -46,6 +46,7 @@ export default {
     copy: 'Copy',
     copied: 'Copied to clipboard',
     copyImage: 'Copy as image',
+    copyValue: 'Copy value',
     copyData: 'Copy data',
     export: 'Export',
     exportPdf: 'PDF report',
