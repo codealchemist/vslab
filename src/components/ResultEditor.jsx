@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Trash2, Plus, Check, X, RotateCcw, TriangleAlert } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { BIOMARKERS, CATEGORIES, getBiomarker } from '../data/biomarkers.js';
 import { fmtNum } from '../lib/format.js';
+import BiomarkerPicker from './BiomarkerPicker.jsx';
 
 /** "5,4" → { value: 5.4 }; "<0.5" → { value: 0.5, qualifier: '<' }; anything else → null. */
 export function parseEntryValue(text) {
@@ -26,11 +27,14 @@ export default function ResultEditor({ result, onSave, onCancel }) {
   const [rows, setRows] = useState(() => result.results.map((e) => ({ entry: e, text: show(e, lang), removed: false })));
   const [addCode, setAddCode] = useState('');
   const [addText, setAddText] = useState('');
+  // Bumped after each add so the search box starts empty again.
+  const [pickerKey, setPickerKey] = useState(0);
+  const valueRef = useRef(null);
 
   const present = new Set(rows.filter((r) => !r.removed).map((r) => r.entry.code));
+  // Biomarkers that can still be added, in category order. Calculated ones are worked out automatically.
   const addable = useMemo(
-    () =>
-      CATEGORIES.map((cat) => [cat, BIOMARKERS.filter((m) => m.cat === cat && !m.derived && !present.has(m.code))]).filter(([, l]) => l.length),
+    () => CATEGORIES.flatMap((cat) => BIOMARKERS.filter((m) => m.cat === cat && !m.derived && !present.has(m.code))),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rows]
   );
@@ -48,6 +52,7 @@ export default function ResultEditor({ result, onSave, onCancel }) {
     setRows((rs) => [...rs, { entry: { code: addCode, unit: meta.unit, manual: true, ...addParsed }, text: addText, removed: false, added: true }]);
     setAddCode('');
     setAddText('');
+    setPickerKey((k) => k + 1);
   };
 
   const save = () => {
@@ -141,25 +146,29 @@ export default function ResultEditor({ result, onSave, onCancel }) {
         <div className="editor-add">
           <span className="label">{t('edit.addTitle')}</span>
           <div className="editor-add-row">
-            <select className="select" value={addCode} onChange={(e) => setAddCode(e.target.value)} aria-label={t('edit.addTitle')}>
-              <option value="">{t('edit.pick')}</option>
-              {addable.map(([cat, list]) => (
-                <optgroup key={cat} label={t(`cat.${cat}`)}>
-                  {list.map((m) => (
-                    <option key={m.code} value={m.code}>{(m.name[lang] || m.name.en)}{m.unit ? ` (${m.unit})` : ''}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <input
-              className="input num"
-              inputMode="decimal"
-              placeholder={t('common.value')}
-              value={addText}
-              onChange={(e) => setAddText(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && add()}
-              aria-label={t('common.value')}
+            <BiomarkerPicker
+              key={pickerKey}
+              options={addable}
+              value={addCode}
+              placeholder={t('edit.pick')}
+              onPick={(code) => {
+                setAddCode(code);
+                if (code) valueRef.current?.focus();
+              }}
             />
+            <div className="editor-value">
+              <input
+                ref={valueRef}
+                className="input num"
+                inputMode="decimal"
+                placeholder={t('common.value')}
+                value={addText}
+                onChange={(e) => setAddText(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && add()}
+                aria-label={t('common.value')}
+              />
+              <span className="unit">{addCode ? getBiomarker(addCode).unit : ''}</span>
+            </div>
             <button className="btn" onClick={add} disabled={!addCode || !addParsed}>
               <Plus size={15} /> {t('edit.add')}
             </button>

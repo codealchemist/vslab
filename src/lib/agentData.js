@@ -1,4 +1,4 @@
-import { BIOMARKERS, BIOMARKER_MAP } from '../data/biomarkers.js';
+import { BIOMARKERS, BIOMARKER_MAP, normText, searchTerms } from '../data/biomarkers.js';
 import { STANDARD_MAP, STANDARDS } from '../data/standards.js';
 import { evaluateResult, compareResults, diffTrend, STATUS_ORDER } from './evaluate.js';
 
@@ -17,7 +17,6 @@ export const STATUSES = [...STATUS_ORDER, 'unknown'];
 // short data fields only.
 const cap = (s, n = 80) => (s == null ? s : String(s).slice(0, n));
 const round = (v, d = 2) => (Number.isFinite(v) ? Math.round(v * 10 ** d) / 10 ** d : null);
-const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
 
 function pickStandard(state, standard) {
   if (standard == null) return state.standard;
@@ -127,20 +126,18 @@ export function getResult(state, { id, standard, sex, status } = {}) {
   };
 }
 
-const names = (m) => [m.code, m.name.en, m.name.es, ...String(m.aliases || '').replace(/\([^)]*\)/g, '').split(',')].map(norm).filter(Boolean);
-
 /**
  * Canonical codes matching a code, an English or Spanish name, or an alias ("LDL", "glucemia").
  * An exact match wins; otherwise every biomarker with a name starting with the query, so a vague
  * query ("vitamin") returns several and the caller can say so instead of guessing.
  */
 export function findCodes(query) {
-  const q = norm(query);
+  const q = normText(query);
   if (!q) return [];
   if (BIOMARKER_MAP[String(query).trim()]) return [String(query).trim()];
-  const exact = BIOMARKERS.filter((m) => names(m).includes(q));
+  const exact = BIOMARKERS.filter((m) => searchTerms(m).includes(q));
   if (exact.length) return exact.map((m) => m.code);
-  return q.length >= 3 ? BIOMARKERS.filter((m) => names(m).some((n) => n.startsWith(q))).map((m) => m.code) : [];
+  return q.length >= 3 ? BIOMARKERS.filter((m) => searchTerms(m).some((n) => n.startsWith(q))).map((m) => m.code) : [];
 }
 
 /** The one code a query names, or null when it matches none or several. */

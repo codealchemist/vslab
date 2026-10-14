@@ -56,6 +56,14 @@ export const BIOMARKERS = [
     { en: 'Usually reflects good insulin sensitivity; very low values with high glucose can point to type 1 diabetes.',
       es: 'Suele reflejar buena sensibilidad a la insulina; valores muy bajos con glucosa alta pueden indicar diabetes tipo 1.' },
     { aliases: 'insulin, insulina basal (pmol/L ÷ 6 = µIU/mL)' }),
+  b('homa_ir', 'metabolic', '',
+    { en: 'HOMA-IR', es: 'HOMA-IR' },
+    { en: 'Homeostatic model assessment of insulin resistance: fasting glucose × fasting insulin ÷ 405. Shows how much insulin your body needs to keep glucose normal, often years before glucose itself rises.',
+      es: 'Modelo homeostático de resistencia a la insulina: glucosa en ayunas × insulina en ayunas ÷ 405. Muestra cuánta insulina necesita tu cuerpo para mantener la glucosa normal, a menudo años antes de que la glucosa suba.' },
+    { en: 'Insulin resistance: above about 2 is early and above about 3 significant. Linked to prediabetes, fatty liver and cardiovascular risk.',
+      es: 'Resistencia a la insulina: por encima de 2 aproximadamente es incipiente y por encima de 3, significativa. Se asocia con prediabetes, hígado graso y riesgo cardiovascular.' },
+    { en: 'Favorable: good insulin sensitivity.', es: 'Favorable: buena sensibilidad a la insulina.' },
+    { aliases: 'HOMA-IR, HOMA, homeostatic model assessment, índice HOMA', derived: { from: ['glucose', 'insulin'], formula: { en: 'fasting glucose (mg/dL) × fasting insulin (µIU/mL) ÷ 405', es: 'glucosa en ayunas (mg/dL) × insulina en ayunas (µIU/mL) ÷ 405' } } }),
 
   // ── Lipids ────────────────────────────────────────────────────────────
   b('total_cholesterol', 'lipids', 'mg/dL',
@@ -126,6 +134,15 @@ export const BIOMARKERS = [
       es: 'Factor de riesgo independiente de enfermedad cardíaca y estenosis aórtica; ≥ 125 nmol/L potencia el riesgo.' },
     { en: 'Favorable.', es: 'Favorable.' },
     { aliases: 'Lp(a), lipoprotein a (mg/dL × 2.15 ≈ nmol/L)' }),
+  b('omega3_index', 'lipids', '%',
+    { en: 'Omega-3 index', es: 'Índice omega-3' },
+    { en: 'The share of EPA and DHA (omega-3 fatty acids) in your red blood cell membranes, reflecting intake over the past 3–4 months.',
+      es: 'La proporción de EPA y DHA (ácidos grasos omega-3) en las membranas de tus glóbulos rojos; refleja la ingesta de los últimos 3–4 meses.' },
+    { en: 'Rarely a concern; very high values usually come from high-dose supplements.',
+      es: 'Rara vez preocupa; los valores muy altos suelen deberse a suplementos en dosis altas.' },
+    { en: 'Low omega-3 status: below 4 % is linked to higher cardiovascular risk, 8 % or more to the lowest.',
+      es: 'Bajo nivel de omega-3: por debajo del 4 % se asocia a mayor riesgo cardiovascular; del 8 % en adelante, al menor.' },
+    { aliases: 'omega-3 index, O3 index, EPA+DHA in red blood cells, índice omega-3' }),
 
   // ── Kidney ────────────────────────────────────────────────────────────
   b('creatinine', 'kidney', 'mg/dL',
@@ -146,6 +163,14 @@ export const BIOMARKERS = [
     { en: 'Reduced kidney function. KDIGO stages: G2 60–89, G3a 45–59, G3b 30–44, G4 15–29, G5 < 15.',
       es: 'Función renal reducida. Estadios KDIGO: G2 60–89, G3a 45–59, G3b 30–44, G4 15–29, G5 < 15.' },
     { aliases: 'eGFR, GFR, CKD-EPI, MDRD, filtrado glomerular' }),
+  b('cystatin_c', 'kidney', 'mg/L',
+    { en: 'Cystatin C', es: 'Cistatina C' },
+    { en: 'A protein filtered by the kidneys. Unlike creatinine it barely depends on muscle mass, so it is a more accurate marker of kidney function, especially for very muscular or very lean people.',
+      es: 'Una proteína que filtran los riñones. A diferencia de la creatinina apenas depende de la masa muscular, por lo que es un marcador más preciso de la función renal, sobre todo en personas muy musculosas o muy delgadas.' },
+    { en: 'Reduced kidney filtration; also linked to higher cardiovascular risk. Thyroid disorders and high-dose corticosteroids can raise it.',
+      es: 'Menor filtración renal; también se asocia a mayor riesgo cardiovascular. Los trastornos tiroideos y los corticoides en dosis altas pueden elevarla.' },
+    { en: 'Not a concern: it reflects good kidney filtration.', es: 'No preocupa: refleja una buena filtración renal.' },
+    { aliases: 'cystatin C, CysC, cistatina C (nmol/L ÷ 75 = mg/L)' }),
   b('bun', 'kidney', 'mg/dL',
     { en: 'Blood urea nitrogen (BUN)', es: 'Nitrógeno ureico (BUN)' },
     { en: 'Nitrogen from protein breakdown, cleared by the kidneys. Influenced by hydration and protein intake.',
@@ -406,6 +431,15 @@ export const BIOMARKERS = [
       es: 'Déficit de vitaminas B, enfermedad renal, variantes MTHFR; asociada a riesgo cardiovascular y cognitivo.' },
     { en: 'Generally favorable.', es: 'Generalmente favorable.' },
     { aliases: 'homocysteine, homocisteína' }),
+  b('fibrinogen', 'inflammation', 'mg/dL',
+    { en: 'Fibrinogen', es: 'Fibrinógeno' },
+    { en: 'A clotting protein made by the liver that also rises with inflammation.',
+      es: 'Una proteína de la coagulación que produce el hígado y que también aumenta con la inflamación.' },
+    { en: 'Inflammation, infection, smoking or higher risk of blood clots and cardiovascular disease.',
+      es: 'Inflamación, infección, tabaquismo o mayor riesgo de trombosis y enfermedad cardiovascular.' },
+    { en: 'Can occur with liver disease or clotting disorders; worth discussing with a doctor.',
+      es: 'Puede aparecer con enfermedades hepáticas o trastornos de la coagulación; conviene comentarlo con un médico.' },
+    { aliases: 'fibrinogen, fibrinógeno (g/L × 100 = mg/dL)' }),
 
   // ── Vitamins & minerals ───────────────────────────────────────────────
   b('vitamin_d', 'vitamins', 'ng/mL',
@@ -451,6 +485,15 @@ export const BIOMARKERS = [
       es: 'Suplementos, comidas ricas en hierro recientes o sobrecarga de hierro.' },
     { en: 'Iron deficiency or chronic inflammation.', es: 'Déficit de hierro o inflamación crónica.' },
     { aliases: 'serum iron, hierro (µmol/L × 5.585 = µg/dL)' }),
+  b('transferrin_sat', 'vitamins', '%',
+    { en: 'Transferrin saturation', es: 'Saturación de transferrina' },
+    { en: 'The percentage of transferrin, the protein that carries iron in the blood, that is loaded with iron. Read together with ferritin and serum iron.',
+      es: 'El porcentaje de transferrina (la proteína que transporta el hierro en sangre) que está cargada de hierro. Se interpreta junto con la ferritina y el hierro sérico.' },
+    { en: 'Iron overload, such as hereditary hemochromatosis, or recent iron supplements.',
+      es: 'Sobrecarga de hierro, como la hemocromatosis hereditaria, o suplementos de hierro recientes.' },
+    { en: 'Iron deficiency, or iron held back by inflammation.',
+      es: 'Déficit de hierro, o hierro retenido por inflamación.' },
+    { aliases: 'transferrin saturation, TSAT, iron saturation, índice de saturación de transferrina, IST' }),
   b('magnesium', 'vitamins', 'mg/dL',
     { en: 'Magnesium', es: 'Magnesio' },
     { en: 'Mineral involved in over 300 enzymatic reactions, muscle and nerve function, and heart rhythm.',
@@ -524,13 +567,56 @@ export const BIOMARKERS = [
     { en: 'Adrenal insufficiency or recent steroid withdrawal.',
       es: 'Insuficiencia suprarrenal o retirada reciente de corticoides.' },
     { aliases: 'cortisol AM, cortisol basal (nmol/L ÷ 27.59 = µg/dL)' }),
+  b('igf1', 'hormones', 'ng/mL',
+    { en: 'IGF-1', es: 'IGF-1' },
+    { en: 'Insulin-like growth factor 1 mirrors growth hormone activity. It falls with age, so the reference range here is for midlife adults.',
+      es: 'El factor de crecimiento insulínico tipo 1 refleja la actividad de la hormona del crecimiento. Disminuye con la edad, así que el rango de referencia aquí es para adultos de mediana edad.' },
+    { en: 'Excess growth hormone or supplements; persistently high levels are linked to some cancers.',
+      es: 'Exceso de hormona del crecimiento o suplementos; los niveles altos persistentes se asocian a algunos cánceres.' },
+    { en: 'Ageing, undernutrition, liver disease or low growth hormone; very low levels are linked to frailty.',
+      es: 'Envejecimiento, desnutrición, enfermedad hepática o déficit de hormona del crecimiento; los niveles muy bajos se asocian a fragilidad.' },
+    { aliases: 'IGF-1, IGF1, somatomedin C, somatomedina C (nmol/L × 7.65 = ng/mL)' }),
+  b('dhea_s', 'hormones', 'µg/dL',
+    { en: 'DHEA-S', es: 'DHEA-S' },
+    { en: 'Dehydroepiandrosterone sulfate, an adrenal hormone used to make testosterone and estrogen. It peaks in your twenties and declines steadily with age.',
+      es: 'Sulfato de dehidroepiandrosterona, una hormona suprarrenal a partir de la cual se fabrican testosterona y estrógenos. Alcanza su máximo hacia los veinte años y baja de forma constante con la edad.' },
+    { en: 'Adrenal overactivity, polycystic ovary syndrome or DHEA supplements.',
+      es: 'Hiperactividad suprarrenal, síndrome de ovario poliquístico o suplementos de DHEA.' },
+    { en: 'Normal ageing, chronic stress, adrenal insufficiency or corticosteroid use.',
+      es: 'Envejecimiento normal, estrés crónico, insuficiencia suprarrenal o uso de corticoides.' },
+    { aliases: 'DHEA-S, DHEAS, DHEA sulfate, sulfato de DHEA (µmol/L × 36.8 = µg/dL)' }),
+  b('shbg', 'hormones', 'nmol/L',
+    { en: 'SHBG', es: 'SHBG' },
+    { en: 'Sex hormone-binding globulin carries testosterone and estrogen in the blood. Only the unbound part is active, so SHBG changes how much of your total testosterone is available.',
+      es: 'La globulina fijadora de hormonas sexuales transporta testosterona y estrógenos en la sangre. Solo la parte libre es activa, así que la SHBG cambia cuánta de tu testosterona total está disponible.' },
+    { en: 'Less free hormone available. Ageing, hyperthyroidism, liver disease or low calorie intake can raise it.',
+      es: 'Menos hormona libre disponible. El envejecimiento, el hipertiroidismo, las enfermedades hepáticas o una ingesta calórica baja pueden elevarla.' },
+    { en: 'Often linked to insulin resistance, excess weight or polycystic ovary syndrome.',
+      es: 'Suele asociarse a resistencia a la insulina, exceso de peso o síndrome de ovario poliquístico.' },
+    { aliases: 'SHBG, sex hormone-binding globulin, globulina fijadora de hormonas sexuales' }),
+  b('psa', 'other', 'ng/mL',
+    { en: 'PSA (prostate-specific antigen)', es: 'PSA (antígeno prostático específico)' },
+    { en: 'A protein made by the prostate, used to screen for prostate disease in men. It rises slowly with age.',
+      es: 'Una proteína que produce la próstata y que se usa para el cribado de enfermedades prostáticas en hombres. Aumenta lentamente con la edad.' },
+    { en: 'Benign prostate enlargement, inflammation, recent ejaculation or cycling, or prostate cancer. A rise over time matters more than one value; discuss it with a doctor.',
+      es: 'Crecimiento benigno de la próstata, inflamación, eyaculación o ciclismo recientes, o cáncer de próstata. Importa más cómo evoluciona que un solo valor; coméntalo con un médico.' },
+    { en: 'Not a concern.', es: 'No preocupa.' },
+    { aliases: 'PSA, total PSA, prostate-specific antigen, antígeno prostático específico' }),
 ];
 
 export const BIOMARKER_MAP = Object.fromEntries(BIOMARKERS.map((m) => [m.code, m]));
 
+/** Lowercase, accent-free and alphanumeric only, so "LDL-C" and "ldl c" compare equal. */
+export const normText = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+/** Every name a biomarker goes by — code, English and Spanish names, aliases (without conversion notes) — normalized. */
+export const searchTerms = (m) =>
+  [m.code, m.name.en, m.name.es, ...String(m.aliases || '').replace(/\([^)]*\)/g, '').split(',')].map(normText).filter(Boolean);
+
 // Calculated biomarkers: computed from other values at evaluation time, never stored or shared.
 const CALCULATORS = {
   tg_hdl_ratio: ({ triglycerides, hdl }) => (hdl > 0 ? triglycerides / hdl : null),
+  homa_ir: ({ glucose, insulin }) => (glucose > 0 && insulin > 0 ? (glucose * insulin) / 405 : null),
 };
 
 /** Adds calculated biomarkers a result has the inputs for (a value reported by the lab always wins). */
