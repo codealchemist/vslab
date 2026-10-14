@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Copy,
   Check,
@@ -14,6 +14,7 @@ import {
   Sparkles,
   ChevronLeft,
   ArrowRight,
+  Bot,
 } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { AI_PROMPT, AI_LINKS } from '../data/prompt.js';
@@ -53,13 +54,15 @@ function Stepper({ step, onBack }) {
 }
 
 export default function Import() {
-  const { t, lang, results, setResults, standard, updateSettings, toast, go, pendingCompare, setPendingCompare } = useApp();
+  const { t, lang, results, setResults, standard, updateSettings, toast, go, pendingCompare, setPendingCompare, stagedImport, setStagedImport, webmcp } = useApp();
   const [step, setStep] = useState(0);
   const [promptCopied, setPromptCopied] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState(null);
   const [over, setOver] = useState(false);
+  // The results on the review step were extracted by the browser's AI agent (WebMCP).
+  const [fromAgent, setFromAgent] = useState(false);
   const fileRef = useRef(null);
   const deleteResult = useDeleteResult();
   // Sample data is replaced by the first real import, so it never takes up a slot.
@@ -81,12 +84,34 @@ export default function Import() {
     }
   };
 
-  /** Validates the JSON; only valid data moves on to the review step. */
+  /** Shared by pasted JSON and agent imports: only valid data moves on to the review step. */
+  const stageParsed = (res, agent = false) => {
+    setParsed(res);
+    setFromAgent(agent);
+    if (!res.error) setStep(4);
+  };
+
   const checkAndContinue = (value = text) => {
     if (!value.trim()) return;
-    const res = parseLabJson(value);
-    setParsed(res);
-    if (!res.error) setStep(4);
+    stageParsed(parseLabJson(value));
+  };
+
+  // An agent called import_lab_results: show its results for review. Saving stays with the user.
+  // Pasted JSON is kept, so Back still leads to it.
+  useEffect(() => {
+    if (!stagedImport) return;
+    stageParsed(stagedImport, true);
+    setStagedImport(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stagedImport]);
+
+  const copyAgentRequest = async () => {
+    try {
+      await copyText(t('webmcp.callout.request'));
+      toast(t('common.copied'));
+    } catch {
+      toast(t('toast.copyFailed'), 'error');
+    }
   };
 
   const readFile = (file) => {
@@ -176,6 +201,19 @@ export default function Import() {
 
           {step === 0 && (
             <>
+              {webmcp?.registered?.length > 0 && (
+                <div className="notice agent-callout">
+                  <Bot size={18} style={{ color: 'var(--accent)' }} />
+                  <div className="stack" style={{ gap: 6 }}>
+                    <b>{t('webmcp.callout.title')}</b>
+                    <span className="small">{t('webmcp.callout.body')}</span>
+                    <button className="btn sm agent-request" onClick={copyAgentRequest} title={t('common.copy')}>
+                      “{t('webmcp.callout.request')}” <Copy size={13} />
+                    </button>
+                    <span className="tiny muted">{t('webmcp.callout.manual')}</span>
+                  </div>
+                </div>
+              )}
               <h2>{t('import.step1')}</h2>
               <p className="text-2">{t('import.step1Body')}</p>
               <div className="row wrap">
@@ -291,6 +329,12 @@ export default function Import() {
             <>
               <h2>{t('import.preview')}</h2>
               <p className="text-2">{t('import.reviewBody')}</p>
+              {fromAgent && (
+                <div className="notice small">
+                  <Bot size={16} style={{ color: 'var(--accent)' }} />
+                  {t('webmcp.reviewNote')}
+                </div>
+              )}
               <div className="stack">
                 {parsed.results.map((r, i) => {
                   const ev = evaluateResult(r, standard.id);

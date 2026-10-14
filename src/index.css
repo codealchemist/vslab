@@ -458,6 +458,8 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .wizard-nav { display: flex; align-items: center; gap: 8px; padding-top: 14px; margin-top: 4px; border-top: 1px solid var(--border); }
 .review-row { gap: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-2); }
 .footer .version { flex: none; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: var(--surface-3); color: var(--text-2); font-size: 11.5px; }
+.footer .agent-status { flex: none; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--surface-3)); color: var(--text-2); font-size: 11.5px; }
+.footer .agent-status.error { background: color-mix(in srgb, var(--crit) 14%, var(--surface-3)); }
 
 /* ── Result detail: filters ─────────────────────────── */
 .mobile-label { display: none; }
@@ -719,3 +721,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .h2h-table .h-bv { grid-area: bv; }
   .h2h-table .h-bp { grid-area: bp; }
 }
+
+/* ── WebMCP agent import callout ────────────────────── */
+.agent-callout { margin-bottom: 18px; align-items: flex-start; }
+.agent-callout .agent-request { align-self: flex-start; white-space: normal; text-align: left; height: auto; min-height: 30px; }

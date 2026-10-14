@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ShieldAlert, LoaderCircle, Clock, CloudOff } from 'lucide-react';
+import { ShieldAlert, LoaderCircle, Clock, CloudOff, Bot } from 'lucide-react';
 import { useApp } from './context.jsx';
+import { useWebMcp } from './hooks/useWebMcp.js';
 import { parseShareHash, downloadShare, resultFingerprint } from './lib/share.js';
 import { uid, fmtDate } from './lib/format.js';
 import { MAX_FRIENDS } from './lib/storage.js';
@@ -99,8 +100,24 @@ function LoadingShare({ id }) {
   );
 }
 
+/** Footer badge, only where WebMCP exists: how many tools an AI agent can use, or why registration failed. */
+function AgentStatus() {
+  const { t, webmcp } = useApp();
+  if (!webmcp?.supported) return null;
+  const ok = !webmcp.error;
+  return (
+    <span
+      className={`agent-status ${ok ? '' : 'error'}`}
+      title={ok ? webmcp.registered.join(', ') : webmcp.error}
+    >
+      <Bot size={12} /> {ok ? t('webmcp.status', { count: webmcp.registered.length }) : t('webmcp.statusError')}
+    </span>
+  );
+}
+
 export default function App() {
   const { t, route, modal, openModal, toast, friends, go } = useApp();
+  useWebMcp();
   const View = VIEWS[route.tab] || Overview;
   const receive = useReceiveShare();
   const receiveRef = useRef(receive);
@@ -161,6 +178,7 @@ export default function App() {
         <footer className="footer">
           <ShieldAlert size={14} />
           <span className="grow">{t('footer.disclaimer')}</span>
+          <AgentStatus />
           <span className="version num" title={t('footer.version', { version: APP_VERSION })}><BrandName /> v{APP_VERSION}</span>
         </footer>
       </main>

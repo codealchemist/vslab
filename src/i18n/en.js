@@ -355,6 +355,26 @@ export default {
     labTestTip: 'Tap any biomarker to read what it measures and what high or low values may mean.',
     statusTitle: 'What the statuses mean',
   },
+  webmcp: {
+    status_one: '{{count}} AI agent tool',
+    status_other: '{{count}} AI agent tools',
+    statusError: 'AI agent tools unavailable',
+    callout: {
+      title: 'Using a browser with an AI agent?',
+      body: 'Skip the copying: attach your lab report (PDF or photo) in the agent’s chat and ask it to import it. VSLab42 will show the results here for you to review before saving.',
+      request: 'Import my lab results into VSLab42',
+      manual: 'Or follow the steps below with any AI assistant.',
+    },
+    reviewNote: 'Extracted by your browser’s AI agent. Check a few values against your report before importing.',
+    tools: {
+      get_lab_import_guide: 'Read VSLab42’s import guide',
+      import_lab_results: 'Load lab results for review',
+      list_lab_results: 'List lab results',
+      get_lab_result: 'Read a lab result',
+      get_biomarker_history: 'Read biomarker history',
+      compare_lab_results: 'Compare lab results',
+    },
+  },
   toast: {
     imported_one: '{{count}} lab result imported',
     imported_other: '{{count}} lab results imported',

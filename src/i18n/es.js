@@ -355,6 +355,26 @@ export default {
     labTestTip: 'Pulsa cualquier biomarcador para leer qué mide y qué pueden significar valores altos o bajos.',
     statusTitle: 'Qué significan los estados',
   },
+  webmcp: {
+    status_one: '{{count}} herramienta para agentes de IA',
+    status_other: '{{count}} herramientas para agentes de IA',
+    statusError: 'Herramientas para agentes de IA no disponibles',
+    callout: {
+      title: '¿Usas un navegador con un agente de IA?',
+      body: 'Sin copiar nada: adjunta tu análisis (PDF o foto) en el chat del agente y pídele que lo importe. VSLab42 te mostrará aquí los resultados para que los revises antes de guardarlos.',
+      request: 'Importa mis resultados de laboratorio en VSLab42',
+      manual: 'O sigue los pasos de abajo con cualquier asistente de IA.',
+    },
+    reviewNote: 'Extraído por el agente de IA de tu navegador. Compara algunos valores con tu informe antes de importar.',
+    tools: {
+      get_lab_import_guide: 'Leer la guía de importación de VSLab42',
+      import_lab_results: 'Cargar resultados para revisarlos',
+      list_lab_results: 'Listar resultados de laboratorio',
+      get_lab_result: 'Leer un resultado de laboratorio',
+      get_biomarker_history: 'Leer la evolución de un biomarcador',
+      compare_lab_results: 'Comparar resultados de laboratorio',
+    },
+  },
   toast: {
     imported_one: '{{count}} análisis importado',
     imported_other: '{{count}} análisis importados',

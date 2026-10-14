@@ -11,3 +11,11 @@
   command = "npm run dev"
   targetPort = 5173
   framework = "#custom"
+
+# WebMCP (AI agent tools, see src/lib/webmcp.js) needs an origin-isolated document. Said explicitly so a
+# later header change can't silently turn it off; tools=(self) keeps cross-origin iframes away from the tools.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Origin-Agent-Cluster = "?1"
+    Permissions-Policy = "tools=(self)"

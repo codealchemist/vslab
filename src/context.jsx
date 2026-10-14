@@ -33,6 +33,10 @@ export function AppProvider({ children }) {
   // Opponent ('f:<id>') someone wanted to compare against before they had a result of their own;
   // Import continues to that comparison once a result is added.
   const [pendingCompare, setPendingCompare] = useState(null);
+  // Results an AI agent extracted (WebMCP import_lab_results), waiting on Import's review step.
+  const [stagedImport, setStagedImport] = useState(null);
+  // WebMCP registration status: { supported, registered, error } (see hooks/useWebMcp.js).
+  const [webmcp, setWebmcp] = useState(null);
 
   const systemDark = useSystemDark();
   const theme = settings.theme === 'system' ? (systemDark ? 'dark' : 'light') : settings.theme;
@@ -83,6 +87,10 @@ export function AppProvider({ children }) {
     route,
     pendingCompare,
     setPendingCompare,
+    stagedImport,
+    setStagedImport,
+    webmcp,
+    setWebmcp,
     // Scrolling to the top happens in App once the new view has rendered (see the route effect there).
     go: (tab, params = {}) => setRoute({ tab, ...params }),
   };

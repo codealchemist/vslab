@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "og": "node scripts/build-og.mjs",
+    "test": "node --test test/",
     "deploy": "npx --yes netlify-cli deploy --build --prod"
   },
   "dependencies": {
