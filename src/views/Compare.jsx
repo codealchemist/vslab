@@ -1,9 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
-import { Swords, Crown, Trophy, Share2, Sparkles, Upload, FileText, Sheet, Trash2, Equal, Info, Eye } from 'lucide-react';
+import { Swords, Crown, Trophy, Share2, Sparkles, Upload, FileText, Sheet, Trash2, Equal, Info, Eye, Search, X, SearchX } from 'lucide-react';
 import { useApp } from '../context.jsx';
-import { compareResults } from '../lib/evaluate.js';
+import { compareResults, pairDiff } from '../lib/evaluate.js';
 import { CATEGORIES } from '../data/biomarkers.js';
-import { fmtDate, fmtNum, beyondText } from '../lib/format.js';
+import { fmtDate, fmtNum, fmtPct, beyondText } from '../lib/format.js';
 import { toTsv } from '../lib/clipboard.js';
 import { downloadFile, exportPdfReport, nodeToPng, toCsv } from '../lib/export.js';
 import { sampleFriend } from '../data/sample.js';
@@ -13,14 +13,23 @@ import { useInfo } from '../components/info.jsx';
 import ShareDialog from '../components/ShareDialog.jsx';
 import CategoryChart from '../charts/CategoryChart.jsx';
 
+/** Small diff line under the left value in the head-to-head table. */
+const Diff = ({ d }) => <span className={`h2h-diff num ${d.className}`} title={d.title}>{d.text}</span>;
+
 export default function Compare() {
-  const { t, lang, results, friends, setFriends, standard, sexOverride, username, route, go, openModal } = useApp();
+  const { t, lang, results, friends, setFriends, standard, sexOverride, username, route, go, openModal, settings, updateSettings } = useApp();
   const info = useInfo();
   const confirm = useConfirm();
   const versusRef = useRef(null);
   const chartRef = useRef(null);
   const tableRef = useRef(null);
   const [filter, setFilter] = useState('all');
+  // Quick filters for the head-to-head table: a search and the categories to show (empty = all).
+  const [q, setQ] = useState('');
+  const [catFilter, setCatFilter] = useState(() => new Set());
+  // Left result minus right result, under the left value; in % or in the biomarker's unit (remembered).
+  // How far a value is past its limit is already in the status pills.
+  const diffUnit = settings.compareDiffUnit === 'value' ? 'value' : 'pct';
   const [aId, setAId] = useState(null);
   const [bKey, setBKey] = useState(route.opponent || null);
 
@@ -93,7 +102,31 @@ export default function Compare() {
   }
 
   const cats = CATEGORIES.filter((c) => cmp.common.a.byCategory[c] != null || cmp.common.b.byCategory[c] != null);
-  const rows = cmp.rows.filter((r) => filter === 'all' || r.winner === filter);
+  // Categories in this comparison, with how many shared biomarkers each has. A category picked for a
+  // previous opponent that this one lacks is ignored rather than hiding everything.
+  const rowCats = CATEGORIES.map((c) => [c, cmp.rows.filter((r) => r.meta.cat === c).length]).filter(([, n]) => n);
+  const activeCats = rowCats.map(([c]) => c).filter((c) => catFilter.has(c));
+  const query = q.trim().toLowerCase();
+  const focused = cmp.rows.filter(
+    (r) =>
+      (!activeCats.length || activeCats.includes(r.meta.cat)) &&
+      (!query || `${r.meta.name.en} ${r.meta.name.es} ${r.code}`.toLowerCase().includes(query))
+  );
+  const focusedWins = { a: 0, b: 0, tie: 0 };
+  focused.forEach((r) => focusedWins[r.winner]++);
+  const narrowed = activeCats.length > 0 || !!query;
+  const toggleCat = (c) =>
+    setCatFilter((cur) => {
+      const n = new Set(cur);
+      n.has(c) ? n.delete(c) : n.add(c);
+      return n;
+    });
+  const clearFocus = () => {
+    setQ('');
+    setCatFilter(new Set());
+    setFilter('all');
+  };
+  const rows = focused.filter((r) => filter === 'all' || r.winner === filter);
   const winnerName = cmp.overall === 'a' ? nameA : nameB;
   // Default names need their own phrasing ("You win", not "You wins").
   const winsText = (name, filter) =>
@@ -103,8 +136,18 @@ export default function Compare() {
         ? t(filter ? 'compare.filterTheyWin' : 'compare.theyWin')
         : t(filter ? 'compare.filterWins' : 'compare.wins', { name });
 
+  const sign = (v) => (v > 0 ? '+' : v < 0 ? '−' : '±');
+  const fmtDiff = ({ delta, pct }) =>
+    diffUnit === 'pct' ? (pct == null ? '—' : `${sign(pct)}${fmtPct(Math.abs(pct), lang)}%`) : `${sign(delta)}${fmtNum(Math.abs(delta), lang, 3)}`;
+  const diffTitle = t('compare.diffPairTitle', { a: nameA, b: nameB });
+  /** A row's diff, as { text, className, title }: green when the left value is closer to optimal. */
+  const diffOf = (r) => {
+    const d = pairDiff(r.a, r.b);
+    return { text: fmtDiff(d), className: `trend-${d.trend}`, title: diffTitle };
+  };
+
   const tableData = () => [
-    [t('common.biomarker'), nameA, '', nameB, '', t('common.unit'), ''],
+    [t('common.biomarker'), nameA, '', nameB, '', t('common.unit'), '', `${nameA} − ${nameB}`],
     ...rows.map((r) => [
       r.meta.name[lang] || r.meta.name.en,
       fmtNum(r.a.value, lang, 3),
@@ -113,6 +156,7 @@ export default function Compare() {
       t(`status.${r.b.status}`) + (r.b.beyond ? ` (${beyondText(r.b.beyond, t, lang)})` : ''),
       r.a.unit,
       r.winner === 'tie' ? t('common.tie') : r.winner === 'a' ? nameA : nameB,
+      diffOf(r).text,
     ]),
   ];
 
@@ -265,7 +309,7 @@ export default function Compare() {
             <h3>{t('compare.headToHead')}</h3>
             <div className="row wrap">
               <div className="segmented" data-no-capture>
-                {[['all', t('compare.filterAll'), cmp.rows.length], ['a', winsText(nameA, true), cmp.wins.a], ['b', winsText(nameB, true), cmp.wins.b], ['tie', t('compare.filterTie'), cmp.wins.tie]].map(([k, l, n]) => (
+                {[['all', t('compare.filterAll'), focused.length], ['a', winsText(nameA, true), focusedWins.a], ['b', winsText(nameB, true), focusedWins.b], ['tie', t('compare.filterTie'), focusedWins.tie]].map(([k, l, n]) => (
                   <button key={k} className={filter === k ? 'active' : ''} onClick={() => setFilter(k)}>
                     {l} <span className="muted num">{n}</span>
                   </button>
@@ -279,6 +323,58 @@ export default function Compare() {
                   { label: t('common.exportCsv'), icon: Sheet, run: () => downloadFile(`vslab42-compare-${a.date}.csv`, toCsv(tableData()), 'text/csv;charset=utf-8') },
                 ]}
               />
+            </div>
+          </div>
+          <div className="h2h-filters" data-no-capture>
+            <div className="search">
+              <Search size={15} />
+              <input
+                className="input"
+                type="search"
+                placeholder={t('common.search')}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => e.key === 'Escape' && setQ('')}
+                aria-label={t('common.search')}
+              />
+              {q && (
+                <button className="search-clear" onClick={() => setQ('')} aria-label={t('detail.clearSearch')} title={t('detail.clearSearch')}>
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            {rowCats.length > 1 && (
+              <div className="row wrap h2h-cats" role="group" aria-label={t('compare.categories')}>
+                {rowCats.map(([c, n]) => {
+                  const on = activeCats.includes(c);
+                  return (
+                    <button key={c} className={`chip ${on ? 'on' : ''}`} onClick={() => toggleCat(c)} aria-pressed={on}>
+                      {t(`cat.${c}`)} <span className="num muted">{n}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <div className="h2h-status">
+              {(narrowed || filter !== 'all') && (
+                <div className="h2h-showing small">
+                  <span className="muted">
+                    {t('detail.showing', { shown: rows.length, total: cmp.rows.length })}
+                    {activeCats.length > 0 && ` · ${activeCats.map((c) => t(`cat.${c}`)).join(', ')}`}
+                  </span>
+                  <button className="btn ghost sm" onClick={clearFocus}>{t('detail.clearFilters')}</button>
+                </div>
+              )}
+              <div className="row h2h-diffbar">
+                <span className="small muted" title={diffTitle}>{t('compare.diff')}</span>
+                <div className="segmented" role="radiogroup" aria-label={t('compare.diffUnit')}>
+                  {[['pct', '%'], ['value', t('common.value')]].map(([u, label]) => (
+                    <button key={u} role="radio" aria-checked={diffUnit === u} className={diffUnit === u ? 'active' : ''} onClick={() => updateSettings({ compareDiffUnit: u })}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           {/* Phones hide the column headings, so this says which side is whose. */}
@@ -308,7 +404,7 @@ export default function Compare() {
                       </button>
                       <span className="tiny muted">{r.a.unit}</span>
                     </td>
-                    <td className="h-av" style={{ textAlign: 'right' }}><span className="value">{fmtNum(r.a.value, lang)}</span></td>
+                    <td className="h-av" style={{ textAlign: 'right' }}><span className="value">{fmtNum(r.a.value, lang)}</span><Diff d={diffOf(r)} /></td>
                     <td className="h-ap"><StatusPill status={r.a.status} compact beyond={r.a.beyond} /></td>
                     <td className="win-cell h-win">
                       {r.winner === 'tie' ? <Equal size={15} className="muted" aria-label={t('common.tie')} /> : <Trophy size={15} className={r.winner === 'a' ? 'win-a' : 'win-b'} aria-label={r.winner === 'a' ? nameA : nameB} />}
@@ -317,6 +413,15 @@ export default function Compare() {
                     <td className="h-bp"><StatusPill status={r.b.status} compact beyond={r.b.beyond} /></td>
                   </tr>
                 ))}
+                {!rows.length && (
+                  <tr className="empty-row">
+                    <td colSpan={6}>
+                      <SearchX size={22} className="muted" />
+                      <p className="muted">{t('detail.noMatch')}</p>
+                      <button className="btn sm" onClick={clearFocus}>{t('detail.clearFilters')}</button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

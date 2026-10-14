@@ -524,9 +524,23 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .sex-switch { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-2); font: inherit; font-size: 12.5px; font-weight: 520; }
 .sex-switch:hover { border-color: var(--border-strong); color: var(--text); }
 
-.result-table .empty-row td { text-align: center; padding: 32px 10px; }
-.result-table .empty-row td > * { margin: 0 auto 10px; }
-.result-table .empty-row:hover { background: none; }
+.result-table .empty-row td, .h2h-table .empty-row td { text-align: center; padding: 32px 10px; }
+.result-table .empty-row td > *, .h2h-table .empty-row td > * { margin: 0 auto 10px; }
+.result-table .empty-row:hover, .h2h-table .empty-row:hover { background: none; }
+
+/* ── Compare: quick filters for the head-to-head table ── */
+.h2h-filters { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.h2h-filters .search .input { padding-right: 34px; }
+.h2h-filters .search input[type='search']::-webkit-search-cancel-button { display: none; }
+.h2h-cats { gap: 6px; }
+/* One row: "Showing … · Clear filters" on the left, the diff unit on the right. */
+.h2h-status { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; }
+.h2h-showing { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; min-width: 0; }
+.h2h-diffbar { gap: 8px; margin-left: auto; }
+.h2h-diff { display: block; font-size: 11.5px; font-weight: 550; line-height: 1.3; }
+.h2h-diff.trend-better { color: var(--good); }
+.h2h-diff.trend-worse { color: var(--crit); }
+.h2h-diff.trend-same { color: var(--muted); }
 
 @media (max-width: 640px) {
   .result-toolbar { margin: 0 -16px 6px; padding: 10px 16px 12px; }
@@ -726,6 +740,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
   /* name / [your value + status] [winner] [their value + status] */
   .h2h-table tr { display: grid; grid-template-columns: auto auto minmax(16px, 1fr) auto auto; grid-template-areas: 'name name name name name' 'av ap win bv bp'; align-items: center; gap: 6px 6px; padding: 12px 2px; border-bottom: 1px solid var(--border); }
   .h2h-table tr:last-child { border-bottom: 0; }
+  .h2h-table tr.empty-row { display: block; }
   .h2h-table tbody tr:hover { background: none; }
   .h2h-table td { display: block; padding: 0; border: 0; min-width: 0; }
   .h2h-table .h-name { grid-area: name; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }

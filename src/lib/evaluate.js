@@ -148,3 +148,9 @@ export function diffTrend(prev, cur, range) {
   const trend = d0 == null || d1 == null || Math.abs(d1 - d0) < eps ? 'same' : d1 < d0 ? 'better' : 'worse';
   return { delta, pct, trend };
 }
+
+/**
+ * Difference between two evaluated items for the same biomarker, a − b: { delta, pct, trend }.
+ * trend is judged on a's range: 'better' when a is closer to the optimal band than b.
+ */
+export const pairDiff = (a, b) => diffTrend(b.value, a.value, a.range);
