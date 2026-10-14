@@ -6,7 +6,7 @@ import { fmtDate } from '../lib/format.js';
 import { MAX_RESULTS } from '../lib/storage.js';
 import { sampleResults } from '../data/sample.js';
 import { exportResultPdf } from '../lib/reports.js';
-import { ScoreRing, StatusPill, InfoButton, SectionActions, STATUS_VAR, scoreStatus, useDeleteResult, useConfirm } from '../components/ui.jsx';
+import { ScoreRing, StatusPill, InfoButton, SectionActions, STATUS_VAR, scoreStatus, useDeleteResult, useConfirm, Panel } from '../components/ui.jsx';
 import { useInfo } from '../components/info.jsx';
 import ShareDialog from '../components/ShareDialog.jsx';
 import ScoreChart from '../charts/ScoreChart.jsx';
@@ -166,17 +166,36 @@ export default function Overview() {
       </div>
 
       <div className="grid grid-2">
-        <div className="card" ref={heroRef}>
-          <div className="card-head">
+        <Panel
+          ref={heroRef}
+          id="overview.latest"
+          title={
             <h2>
               {t('overview.latest')}
               <InfoButton onClick={info.score} />
             </h2>
+          }
+          actions={
             <SectionActions
               targetRef={heroRef}
               exports={[{ label: t('common.exportPdf'), icon: FileText, run: () => exportResultPdf(latest.result, latest.ev, standard, t, lang) }]}
             />
-          </div>
+          }
+          summary={
+            <>
+              <ScoreRing score={latest.ev.score} size={40} stroke={4} />
+              <span className="stack" style={{ gap: 2, minWidth: 0, flex: 1 }}>
+                <b style={{ color: 'var(--text)' }}>{fmtDate(latest.result.date, lang)}</b>
+                <span className="tiny muted">
+                  {delta == null ? t('overview.markers', { count: latest.result.results.length }) : delta === 0 ? t('overview.noChange') : t('overview.change', { delta: delta > 0 ? `+${delta}` : delta })}
+                </span>
+              </span>
+              <button className="btn sm" onClick={() => go('overview', { resultId: latest.result.id })}>
+                {t('overview.open')} <ArrowUpRight size={14} />
+              </button>
+            </>
+          }
+        >
           <div className="hero" style={{ gridTemplateColumns: 'auto 1fr', gap: 22 }}>
             <ScoreRing score={latest.ev.score} size={136} sub={t('common.score')} />
             <div className="stack" style={{ gap: 10 }}>
@@ -201,29 +220,33 @@ export default function Overview() {
               </button>
             </div>
           </div>
-        </div>
+        </Panel>
 
         {evals.length >= 2 ? (
-          <div className="card" ref={trendRef}>
-            <div className="card-head">
-              <h2>{t('timeline.scoreTrend')}</h2>
+          <Panel
+            ref={trendRef}
+            id="overview.trend"
+            title={<h2>{t('timeline.scoreTrend')}</h2>}
+            actions={
               <SectionActions
                 targetRef={trendRef}
                 getRows={() => evals.map((e) => `${e.result.date}\t${e.ev.score}`).join('\n')}
               />
-            </div>
+            }
+            // Every score in date order: the whole chart in one line.
+            summary={<span className="num score-seq">{evals.map((e) => e.ev.score ?? '—').join(' → ')}</span>}
+          >
             <div className="chart-box">
               <ScoreChart points={evals.map((e) => ({ date: e.result.date, score: e.ev.score }))} />
             </div>
-          </div>
+          </Panel>
         ) : (
-          <div className="card">
-            <div className="card-head"><h2>{t('overview.highlights')}</h2></div>
+          <Panel id="overview.highlights" title={<h2>{t('overview.highlights')}</h2>} summary={<span className="muted">{t('timeline.needTwo')}</span>}>
             <div className="empty" style={{ padding: 24 }}>
               <ChartLine size={28} className="muted" />
               <p className="small">{t('timeline.needTwo')}</p>
             </div>
-          </div>
+          </Panel>
         )}
       </div>
 
@@ -231,8 +254,16 @@ export default function Overview() {
         <div className="grid grid-2" style={{ marginTop: 16 }}>
           {[['best', best], ['worst', worst]].map(([key, list]) =>
             list.length ? (
-              <div className="card" key={key}>
-                <div className="card-head"><h3>{t(`overview.${key}`)}</h3></div>
+              <Panel
+                key={key}
+                id={`overview.${key}`}
+                title={<h3>{t(`overview.${key}`)}</h3>}
+                summary={list.map(([c, sc]) => (
+                  <span key={c}>
+                    {t(`cat.${c}`)} <b className="num" style={{ color: STATUS_VAR[scoreStatus(sc)] }}>{sc}</b>
+                  </span>
+                ))}
+              >
                 <div className="stack" style={{ gap: 10 }}>
                   {list.map(([c, s]) => (
                     <div key={c} className="row" style={{ gap: 12 }}>
@@ -244,7 +275,7 @@ export default function Overview() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Panel>
             ) : null
           )}
         </div>

@@ -5,7 +5,7 @@ import { evaluateResult } from '../lib/evaluate.js';
 import { fmtDate, fmtNum, fmtRange } from '../lib/format.js';
 import { toTsv, copyNodeImage, SQUARE_STYLE } from '../lib/clipboard.js';
 import { resultRows } from '../lib/reports.js';
-import { ScoreRing, StatusPill, RangeBar, InfoButton, useDeleteResult } from '../components/ui.jsx';
+import { ScoreRing, StatusPill, RangeBar, InfoButton, useDeleteResult, useCollapsed, CollapseButton } from '../components/ui.jsx';
 import ResultToolbar from '../components/ResultToolbar.jsx';
 import ResultOptionsModal from '../components/ResultOptionsModal.jsx';
 import ResultEditor from '../components/ResultEditor.jsx';
@@ -36,6 +36,7 @@ export default function ResultDetail({ result, shared }) {
     setGaugeX(Math.round(freeSpace / 2));
   };
   const heroView = settings.heroView === 'categories' ? 'categories' : 'status';
+  const [summaryCollapsed, setSummaryCollapsed] = useCollapsed('result');
   const copySnapshot = async () => {
     try {
       await copyNodeImage(snapshotRef.current, undefined, SQUARE_STYLE);
@@ -156,64 +157,91 @@ export default function ResultDetail({ result, shared }) {
       ) : (
 
       <div className="card">
-        <div className="hero-bar">
-          <div className="segmented" role="radiogroup" aria-label={t('detail.view')}>
-            {[['status', LayoutGrid], ['categories', Radar]].map(([v, Icon]) => (
-              <button key={v} role="radio" aria-checked={heroView === v} className={heroView === v ? 'active' : ''} onClick={() => updateSettings({ heroView: v })}>
-                <Icon size={13} /> {t(`detail.view_${v}`)}
-              </button>
-            ))}
-          </div>
-          <button className="btn sm hero-copy" onClick={copySnapshot} title={t(`detail.copy_${heroView}`)} aria-label={t('common.copyImage')}>
-            <ImageIcon size={14} /> <span className="hide-phone">{t('common.copyImage')}</span>
-          </button>
-        </div>
-        <div
-          ref={heroRef}
-          className={`hero ${heroView === 'categories' ? 'hero-categories' : ''}`}
-          style={{ marginBottom: 20, ...(gaugeX != null && { '--gauge-x': `${gaugeX}px` }) }}
-        >
-          <div className="stack" style={{ alignItems: 'center', gap: 6 }}>
-            <ScoreRing score={ev.score} size={128} sub={standard.short} />
-            <button className="btn ghost sm" onClick={info.score} data-no-capture>
-              <Info size={13} /> {t('common.globalScore')}
-            </button>
-          </div>
-          {heroView === 'categories' ? (
-            <div className="hero-radar">
-              <div className="tiny muted summary-chart-title">{t('compare.byCategory')} · 0–100 {t('compare.pts')}</div>
-              <div ref={radarBoxRef} style={{ position: 'relative', height: categoryChartHeight(Object.keys(ev.byCategory).length) }}>
-                <CategoryRadar byCategory={ev.byCategory} selected={catFilter} onToggle={toggleCat} onExtent={placeGauge} />
-              </div>
-              <div className="tiny muted hero-radar-hint">
-                {catFilter.size ? (
-                  <>
-                    {t('detail.radarFiltered', { count: catFilter.size })}{' '}
-                    <button className="link-btn" onClick={() => setCatFilter(new Set())}>{t('detail.clearFilters')}</button>
-                  </>
-                ) : (
-                  t('detail.radarHint')
-                )}
-              </div>
+        {summaryCollapsed ? (
+          // Collapsed: score and the status counts in one row; the counts still filter the table.
+          <div className="summary-bar">
+            <ScoreRing score={ev.score} size={44} stroke={4} />
+            <div className="summary-bar-stats" role="group" aria-label={t('common.status')}>
+              {['optimal', 'normal', 'borderline', 'out'].map((s) => (
+                <button
+                  key={s}
+                  className={`mini-stat ${tileActive(s) ? 'active' : ''} ${statusFilter && !tileActive(s) ? 'dimmed' : ''}`}
+                  onClick={() => toggleFilter(s)}
+                  disabled={!ev.counts[s]}
+                  aria-pressed={statusFilter === s}
+                  title={`${t(`status.${s}`)}: ${ev.counts[s]}`}
+                >
+                  <StatusPill status={s} compact /> <b className="num">{ev.counts[s]}</b>
+                </button>
+              ))}
             </div>
-          ) : (
-          <div className="hero-stats">
-            {['optimal', 'normal', 'borderline', 'out'].map((s) => (
-              <button
-                key={s}
-                className={`stat stat-filter s-${s} ${tileActive(s) ? 'active' : ''} ${statusFilter && !tileActive(s) ? 'dimmed' : ''}`}
-                onClick={() => toggleFilter(s)}
-                disabled={!ev.counts[s]}
-                aria-pressed={statusFilter === s}
-                title={statusFilter === s ? t('detail.clearFilter') : t('detail.filterBy', { status: t(`status.${s}`) })}
-              >
-                <div className="stat-v">{ev.counts[s]}</div>
-                <div className="stat-l"><StatusPill status={s} /></div>
-              </button>
-            ))}
+            <CollapseButton collapsed onToggle={setSummaryCollapsed} />
           </div>
-          )}
-        </div>
+        ) : (
+          <>
+          <div className="hero-bar">
+            <div className="segmented" role="radiogroup" aria-label={t('detail.view')}>
+              {[['status', LayoutGrid], ['categories', Radar]].map(([v, Icon]) => (
+                <button key={v} role="radio" aria-checked={heroView === v} className={heroView === v ? 'active' : ''} onClick={() => updateSettings({ heroView: v })}>
+                  <Icon size={13} /> {t(`detail.view_${v}`)}
+                </button>
+              ))}
+            </div>
+            <div className="row" style={{ gap: 4 }}>
+              <button className="btn sm hero-copy" onClick={copySnapshot} title={t(`detail.copy_${heroView}`)} aria-label={t('common.copyImage')}>
+                <ImageIcon size={14} /> <span className="hide-phone">{t('common.copyImage')}</span>
+              </button>
+              <CollapseButton collapsed={false} onToggle={setSummaryCollapsed} />
+            </div>
+          </div>
+          <div
+            ref={heroRef}
+            className={`hero ${heroView === 'categories' ? 'hero-categories' : ''}`}
+            style={{ marginBottom: 20, ...(gaugeX != null && { '--gauge-x': `${gaugeX}px` }) }}
+          >
+            <div className="stack" style={{ alignItems: 'center', gap: 6 }}>
+              <ScoreRing score={ev.score} size={128} sub={standard.short} />
+              <button className="btn ghost sm" onClick={info.score} data-no-capture>
+                <Info size={13} /> {t('common.globalScore')}
+              </button>
+            </div>
+            {heroView === 'categories' ? (
+              <div className="hero-radar">
+                <div className="tiny muted summary-chart-title">{t('compare.byCategory')} · 0–100 {t('compare.pts')}</div>
+                <div ref={radarBoxRef} style={{ position: 'relative', height: categoryChartHeight(Object.keys(ev.byCategory).length) }}>
+                  <CategoryRadar byCategory={ev.byCategory} selected={catFilter} onToggle={toggleCat} onExtent={placeGauge} />
+                </div>
+                <div className="tiny muted hero-radar-hint">
+                  {catFilter.size ? (
+                    <>
+                      {t('detail.radarFiltered', { count: catFilter.size })}{' '}
+                      <button className="link-btn" onClick={() => setCatFilter(new Set())}>{t('detail.clearFilters')}</button>
+                    </>
+                  ) : (
+                    t('detail.radarHint')
+                  )}
+                </div>
+              </div>
+            ) : (
+            <div className="hero-stats">
+              {['optimal', 'normal', 'borderline', 'out'].map((s) => (
+                <button
+                  key={s}
+                  className={`stat stat-filter s-${s} ${tileActive(s) ? 'active' : ''} ${statusFilter && !tileActive(s) ? 'dimmed' : ''}`}
+                  onClick={() => toggleFilter(s)}
+                  disabled={!ev.counts[s]}
+                  aria-pressed={statusFilter === s}
+                  title={statusFilter === s ? t('detail.clearFilter') : t('detail.filterBy', { status: t(`status.${s}`) })}
+                >
+                  <div className="stat-v">{ev.counts[s]}</div>
+                  <div className="stat-l"><StatusPill status={s} /></div>
+                </button>
+              ))}
+            </div>
+            )}
+          </div>
+          </>
+        )}
 
         {/* Off-screen card that the copy button turns into an image (phone-screen sized). */}
         <div className="offscreen" aria-hidden="true">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CircleCheckBig,
@@ -13,6 +13,8 @@ import {
   Image as ImageIcon,
   Download,
   ChevronDown,
+  ChevronsDownUp,
+  ChevronsUpDown,
 } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { copyNodeImage, copyText } from '../lib/clipboard.js';
@@ -205,6 +207,70 @@ export function Menu({ button, children, align = 'right', className = '', backdr
       {/* Outside the menu, so the mousedown handler above closes it when the backdrop is tapped. */}
       {open && backdrop && createPortal(<div className="menu-backdrop" aria-hidden="true" />, document.body)}
     </div>
+  );
+}
+
+const PHONE = '(max-width: 640px)';
+
+/** True at phone widths (the same breakpoint as the phone layout in index.css). */
+export function usePhone() {
+  const [phone, setPhone] = useState(() => window.matchMedia(PHONE).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE);
+    const on = (e) => setPhone(e.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return phone;
+}
+
+/**
+ * Whether a panel is collapsed, remembered in settings under `key` (`initial` until the user
+ * toggles it). Collapsing is a phone feature: on wider screens every panel shows in full.
+ */
+export function useCollapsed(key, initial = false) {
+  const { settings, updateSettings } = useApp();
+  const phone = usePhone();
+  // Stored under `panels` (not the `collapsed` key early builds used), so every panel starts from its default.
+  const collapsed = phone && (settings.panels?.[key] ?? initial);
+  const setCollapsed = (v) => updateSettings({ panels: { ...settings.panels, [key]: v } });
+  return [collapsed, setCollapsed];
+}
+
+/**
+ * A card with a title row. On phones it can collapse to that row plus `summary`, a one-line digest
+ * of the body, to leave more of the screen for content. Actions hide while collapsed.
+ * `id` is the key its collapsed state is remembered under; `defaultCollapsed` applies until toggled.
+ * `collapsible={false}` keeps the panel open, for panels with nothing worth hiding.
+ */
+export const Panel = forwardRef(function Panel(
+  { id, title, actions, summary, defaultCollapsed = false, collapsible = true, className = '', style, headStyle, children },
+  ref
+) {
+  const [saved, setCollapsed] = useCollapsed(id, defaultCollapsed);
+  const collapsed = collapsible && saved;
+  return (
+    <div ref={ref} className={`card panel ${collapsed ? 'collapsed' : ''} ${className}`} style={style}>
+      <div className="card-head panel-head" style={collapsed ? undefined : headStyle}>
+        <div className="panel-title">
+          {title}
+          {collapsible && <CollapseButton collapsed={collapsed} onToggle={setCollapsed} />}
+        </div>
+        {!collapsed && actions}
+      </div>
+      {collapsed ? summary && <div className="panel-summary">{summary}</div> : children}
+    </div>
+  );
+});
+
+/** Collapses or expands a summary panel, giving the content below more room. */
+export function CollapseButton({ collapsed, onToggle }) {
+  const { t } = useApp();
+  const label = collapsed ? t('common.expandSummary') : t('common.collapseSummary');
+  return (
+    <button className="icon-btn collapse-btn" onClick={() => onToggle(!collapsed)} aria-expanded={!collapsed} aria-label={label} title={label} data-no-capture>
+      {collapsed ? <ChevronsUpDown size={16} /> : <ChevronsDownUp size={16} />}
+    </button>
   );
 }
 

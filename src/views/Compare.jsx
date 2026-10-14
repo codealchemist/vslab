@@ -1,17 +1,31 @@
 import { useMemo, useRef, useState } from 'react';
-import { Swords, Crown, Trophy, Share2, Sparkles, Upload, FileText, Sheet, Trash2, Equal, Info, Eye, Search, X, SearchX } from 'lucide-react';
+import { Swords, Crown, Trophy, Share2, Sparkles, Upload, FileText, Sheet, Trash2, Equal, Info, Eye, SearchX, Check, Download, Copy, ClipboardCopy, Image as ImageIcon } from 'lucide-react';
 import { useApp } from '../context.jsx';
 import { compareResults, pairDiff } from '../lib/evaluate.js';
 import { CATEGORIES } from '../data/biomarkers.js';
 import { fmtDate, fmtNum, fmtPct, beyondText } from '../lib/format.js';
-import { toTsv } from '../lib/clipboard.js';
+import { toTsv, copyText, copyNodeImage } from '../lib/clipboard.js';
 import { downloadFile, exportPdfReport, nodeToPng, toCsv } from '../lib/export.js';
 import { sampleFriend } from '../data/sample.js';
 import { MAX_FRIENDS } from '../lib/storage.js';
-import { ScoreRing, StatusPill, InfoButton, SectionActions, useConfirm } from '../components/ui.jsx';
+import { ScoreRing, StatusPill, InfoButton, SectionActions, useConfirm, Panel } from '../components/ui.jsx';
 import { useInfo } from '../components/info.jsx';
 import ShareDialog from '../components/ShareDialog.jsx';
+import ResultToolbar from '../components/ResultToolbar.jsx';
+import OptionsModal from '../components/OptionsModal.jsx';
 import CategoryChart from '../charts/CategoryChart.jsx';
+
+/** "7 · 20 · 0": wins for the left side, ties, wins for the right side, in each side's colour. */
+function WinCount({ wins }) {
+  const { t } = useApp();
+  return (
+    <span className="cb-mid num" title={`${wins.a} – ${wins.tie} – ${wins.b} · ${t('compare.winsCount')}`}>
+      <b className="win-a">{wins.a}</b>
+      <span className="muted">{wins.tie}</span>
+      <b className="win-b">{wins.b}</b>
+    </span>
+  );
+}
 
 /** Small diff line under the left value in the head-to-head table. */
 const Diff = ({ d }) => <span className={`h2h-diff num ${d.className}`} title={d.title}>{d.text}</span>;
@@ -27,6 +41,7 @@ export default function Compare() {
   // Quick filters for the head-to-head table: a search and the categories to show (empty = all).
   const [q, setQ] = useState('');
   const [catFilter, setCatFilter] = useState(() => new Set());
+  const [optionsOpen, setOptionsOpen] = useState(false);
   // Left result minus right result, under the left value; in % or in the biomarker's unit (remembered).
   // How far a value is past its limit is already in the status pills.
   const diffUnit = settings.compareDiffUnit === 'value' ? 'value' : 'pct';
@@ -102,6 +117,12 @@ export default function Compare() {
   }
 
   const cats = CATEGORIES.filter((c) => cmp.common.a.byCategory[c] != null || cmp.common.b.byCategory[c] != null);
+  // How many categories each side scores higher in (collapsed category panel).
+  const catLead = { a: 0, b: 0, even: 0 };
+  cats.forEach((c) => {
+    const d = (cmp.common.a.byCategory[c] ?? -1) - (cmp.common.b.byCategory[c] ?? -1);
+    catLead[d > 0 ? 'a' : d < 0 ? 'b' : 'even']++;
+  });
   // Categories in this comparison, with how many shared biomarkers each has. A category picked for a
   // previous opponent that this one lacks is ignored rather than hiding everything.
   const rowCats = CATEGORIES.map((c) => [c, cmp.rows.filter((r) => r.meta.cat === c).length]).filter(([, n]) => n);
@@ -114,13 +135,6 @@ export default function Compare() {
   );
   const focusedWins = { a: 0, b: 0, tie: 0 };
   focused.forEach((r) => focusedWins[r.winner]++);
-  const narrowed = activeCats.length > 0 || !!query;
-  const toggleCat = (c) =>
-    setCatFilter((cur) => {
-      const n = new Set(cur);
-      n.has(c) ? n.delete(c) : n.add(c);
-      return n;
-    });
   const clearFocus = () => {
     setQ('');
     setCatFilter(new Set());
@@ -135,6 +149,11 @@ export default function Compare() {
       : name === t('compare.they')
         ? t(filter ? 'compare.filterTheyWin' : 'compare.theyWin')
         : t(filter ? 'compare.filterWins' : 'compare.wins', { name });
+  // Labels of the filters in effect, shown next to "Showing x of y" in the toolbar.
+  const activeFilters = [
+    ...(filter === 'all' ? [] : [filter === 'tie' ? t('compare.filterTie') : winsText(filter === 'a' ? nameA : nameB, true)]),
+    ...activeCats.map((c) => t(`cat.${c}`)),
+  ];
 
   const sign = (v) => (v > 0 ? '+' : v < 0 ? '−' : '±');
   const fmtDiff = ({ delta, pct }) =>
@@ -197,7 +216,19 @@ export default function Compare() {
     <div className="fade-in">
       {head}
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <Panel
+        id="compare.pick"
+        defaultCollapsed
+        style={{ marginBottom: 16 }}
+        title={<h3>{t('compare.pickTitle')}</h3>}
+        summary={
+          <span className="cmp-pick">
+            <span className="cmp-pick-side"><span className="swatch" style={{ background: 'var(--you)' }} /><b>{nameA}</b> <span className="muted">{fmtDate(a.date, lang)}</span></span>
+            <span className="muted">vs</span>
+            <span className="cmp-pick-side"><span className="swatch" style={{ background: 'var(--them)' }} /><b>{nameB}</b> <span className="muted">{fmtDate(b.result.date, lang)}</span></span>
+          </span>
+        }
+      >
         <div className="grid grid-2" style={{ gap: 12 }}>
           <div>
             <label className="label">{t('compare.yours')}</label>
@@ -249,17 +280,40 @@ export default function Compare() {
             <Sparkles size={13} /> {t('compare.sampleFriend')}
           </button>
         )}
-      </div>
+      </Panel>
 
-      <div className="card" ref={versusRef} style={{ marginBottom: 16 }}>
-        <div className="card-head">
-          <h2>{t('common.globalScore')} <InfoButton onClick={info.score} /></h2>
+      <Panel
+        ref={versusRef}
+        id="compare.score"
+        defaultCollapsed
+        style={{ marginBottom: 16 }}
+        title={<h2>{t('common.globalScore')} <InfoButton onClick={info.score} /></h2>}
+        actions={
           <SectionActions
             targetRef={versusRef}
             getRows={() => toTsv([[nameA, cmp.common.a.score], [nameB, cmp.common.b.score], [t('compare.winsCount'), `${cmp.wins.a}-${cmp.wins.b}-${cmp.wins.tie}`]])}
             exports={[{ label: t('common.exportPdf'), icon: FileText, run: exportPdf }]}
           />
-        </div>
+        }
+        summary={
+          // Both sides' scores, wins – ties – wins, and the winner.
+          <div className="compare-bar">
+            <div className="cb-side">
+              <span className="swatch" style={{ background: 'var(--you)' }} />
+              <span className="cb-name">{nameA}</span>
+              <b className="num">{cmp.common.a.score ?? '—'}</b>
+              {cmp.overall === 'a' && <Crown size={14} className="cb-crown" aria-label={winsText(nameA)} />}
+            </div>
+            <WinCount wins={cmp.wins} />
+            <div className="cb-side cb-right">
+              {cmp.overall === 'b' && <Crown size={14} className="cb-crown" aria-label={winsText(nameB)} />}
+              <b className="num">{cmp.common.b.score ?? '—'}</b>
+              <span className="cb-name">{nameB}</span>
+              <span className="swatch" style={{ background: 'var(--them)' }} />
+            </div>
+          </div>
+        }
+      >
         <div className="versus" style={{ paddingTop: 14 }}>
           <Side who="a" name={nameA} result={a} score={cmp.common.a.score} color="var(--you)" person={selfMatch ? me : null} />
           <div className="versus-mid">
@@ -280,13 +334,24 @@ export default function Compare() {
         <p className="tiny muted" style={{ textAlign: 'center', marginTop: 16 }}>
           <Info size={12} style={{ verticalAlign: '-2px' }} /> {t('compare.fairNote')}
         </p>
-      </div>
+      </Panel>
 
       <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1fr)', gap: 16 }}>
         {cats.length > 0 && (
-          <div className="card" ref={chartRef}>
-            <div className="card-head">
-              <h3>{t('compare.byCategory')} <span className="badge">0–100 {t('compare.pts')}</span></h3>
+          <Panel
+            ref={chartRef}
+            id="compare.categories"
+        defaultCollapsed
+            title={<h3>{t('compare.byCategory')} <span className="badge">0–100 {t('compare.pts')}</span></h3>}
+            summary={
+              <>
+                <span className="muted">{t('compare.catsAhead')}</span>
+                <span className="win-a"><b className="num">{catLead.a}</b> {nameA}</span>
+                <span className="win-b"><b className="num">{catLead.b}</b> {nameB}</span>
+                {catLead.even > 0 && <span className="muted">= {catLead.even}</span>}
+              </>
+            }
+            actions={
               <div className="row" style={{ gap: 14 }}>
                 <div className="legend">
                   <span><i style={{ background: 'var(--you)' }} />{nameA}</span>
@@ -297,86 +362,77 @@ export default function Compare() {
                   getRows={() => toTsv([['', nameA, nameB], ...cats.map((c) => [t(`cat.${c}`), cmp.common.a.byCategory[c] ?? '', cmp.common.b.byCategory[c] ?? ''])])}
                 />
               </div>
-            </div>
+            }
+          >
             <div className="chart-box" style={{ height: Math.max(180, cats.length * 46) }}>
               <CategoryChart categories={cats} a={cmp.common.a.byCategory} b={cmp.common.b.byCategory} labelA={nameA} labelB={nameB} />
             </div>
-          </div>
+          </Panel>
         )}
 
-        <div className="card" ref={tableRef}>
-          <div className="card-head">
-            <h3>{t('compare.headToHead')}</h3>
-            <div className="row wrap">
-              <div className="segmented" data-no-capture>
-                {[['all', t('compare.filterAll'), focused.length], ['a', winsText(nameA, true), focusedWins.a], ['b', winsText(nameB, true), focusedWins.b], ['tie', t('compare.filterTie'), focusedWins.tie]].map(([k, l, n]) => (
-                  <button key={k} className={filter === k ? 'active' : ''} onClick={() => setFilter(k)}>
-                    {l} <span className="muted num">{n}</span>
-                  </button>
-                ))}
-              </div>
-              <SectionActions
-                targetRef={tableRef}
-                getRows={() => toTsv(tableData())}
-                exports={[
-                  { label: t('common.exportPdf'), icon: FileText, run: exportPdf },
-                  { label: t('common.exportCsv'), icon: Sheet, run: () => downloadFile(`vslab42-compare-${a.date}.csv`, toCsv(tableData()), 'text/csv;charset=utf-8') },
-                ]}
-              />
-            </div>
-          </div>
-          <div className="h2h-filters" data-no-capture>
-            <div className="search">
-              <Search size={15} />
-              <input
-                className="input"
-                type="search"
-                placeholder={t('common.search')}
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                onKeyDown={(e) => e.key === 'Escape' && setQ('')}
-                aria-label={t('common.search')}
-              />
-              {q && (
-                <button className="search-clear" onClick={() => setQ('')} aria-label={t('detail.clearSearch')} title={t('detail.clearSearch')}>
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-            {rowCats.length > 1 && (
-              <div className="row wrap h2h-cats" role="group" aria-label={t('compare.categories')}>
-                {rowCats.map(([c, n]) => {
-                  const on = activeCats.includes(c);
-                  return (
-                    <button key={c} className={`chip ${on ? 'on' : ''}`} onClick={() => toggleCat(c)} aria-pressed={on}>
-                      {t(`cat.${c}`)} <span className="num muted">{n}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            <div className="h2h-status">
-              {(narrowed || filter !== 'all') && (
-                <div className="h2h-showing small">
-                  <span className="muted">
-                    {t('detail.showing', { shown: rows.length, total: cmp.rows.length })}
-                    {activeCats.length > 0 && ` · ${activeCats.map((c) => t(`cat.${c}`)).join(', ')}`}
-                  </span>
-                  <button className="btn ghost sm" onClick={clearFocus}>{t('detail.clearFilters')}</button>
-                </div>
-              )}
-              <div className="row h2h-diffbar">
-                <span className="small muted" title={diffTitle}>{t('compare.diff')}</span>
-                <div className="segmented" role="radiogroup" aria-label={t('compare.diffUnit')}>
-                  {[['pct', '%'], ['value', t('common.value')]].map(([u, label]) => (
-                    <button key={u} role="radio" aria-checked={diffUnit === u} className={diffUnit === u ? 'active' : ''} onClick={() => updateSettings({ compareDiffUnit: u })}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+        <Panel ref={tableRef} id="compare.h2h" collapsible={false} title={<h3>{t('compare.headToHead')}</h3>}>
+          {/* Search stays in view; categories, winner, diff unit and export live in the options dialog. */}
+          <ResultToolbar
+            q={q}
+            setQ={setQ}
+            activeFilters={activeFilters}
+            optionsCount={activeCats.length + (filter !== 'all' ? 1 : 0)}
+            onOpenOptions={() => setOptionsOpen(true)}
+            shown={rows.length}
+            total={cmp.rows.length}
+            onClearAll={clearFocus}
+          />
+          {optionsOpen && (
+            <OptionsModal
+              onClose={() => setOptionsOpen(false)}
+              filterHint={t('options.compareFilterHint')}
+              catCounts={rowCats}
+              catFilter={catFilter}
+              setCatFilter={setCatFilter}
+              activeCount={activeCats.length + (filter !== 'all' ? 1 : 0)}
+              onClearFilters={() => {
+                setCatFilter(new Set());
+                setFilter('all');
+              }}
+              filterExtra={
+                <>
+                  <div className="options-group">
+                    <span className="label">{t('compare.winner')}</span>
+                    <div className="row wrap" style={{ gap: 6 }} role="radiogroup" aria-label={t('compare.winner')}>
+                      {[['all', t('compare.filterAll'), focused.length], ['a', winsText(nameA, true), focusedWins.a], ['b', winsText(nameB, true), focusedWins.b], ['tie', t('compare.filterTie'), focusedWins.tie]].map(([k, l, n]) => (
+                        <button key={k} role="radio" aria-checked={filter === k} className={`chip ${filter === k ? 'on' : ''}`} onClick={() => setFilter(k)}>
+                          {filter === k && <Check size={12} />}
+                          {k === 'a' && <span className="win-a">●</span>}
+                          {k === 'b' && <span className="win-b">●</span>}
+                          {l} <span className="tiny muted">{n}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="options-group">
+                    <span className="label">{t('compare.diff')}</span>
+                    <div className="row wrap" style={{ gap: 10 }}>
+                      <div className="segmented" role="radiogroup" aria-label={t('compare.diffUnit')}>
+                        {[['pct', '%'], ['value', t('common.value')]].map(([u, label]) => (
+                          <button key={u} role="radio" aria-checked={diffUnit === u} className={diffUnit === u ? 'active' : ''} onClick={() => updateSettings({ compareDiffUnit: u })}>
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <span className="tiny muted">{diffTitle}</span>
+                    </div>
+                  </div>
+                </>
+              }
+              exportHint={t('options.compareExportHint')}
+              exports={[
+                { label: t('common.exportPdf'), hint: t('options.comparePdfHint'), icon: FileText, trailIcon: Download, done: t('toast.exported'), run: exportPdf },
+                { label: t('common.exportCsv'), hint: t('options.compareCsvHint'), icon: Sheet, trailIcon: Download, done: t('toast.exported'), run: () => downloadFile(`vslab42-compare-${a.date}.csv`, toCsv(tableData()), 'text/csv;charset=utf-8') },
+                { label: t('options.copyRows'), hint: t('options.copyRowsHint'), icon: Copy, trailIcon: ClipboardCopy, done: t('common.copied'), run: () => copyText(toTsv(tableData())) },
+                { label: t('common.copyImage'), hint: t('options.copyImageHint'), icon: ImageIcon, trailIcon: ClipboardCopy, done: t('common.copied'), run: () => copyNodeImage(tableRef.current) },
+              ]}
+            />
+          )}
           {/* Phones hide the column headings, so this says which side is whose. */}
           <div className="h2h-legend small">
             <span><span className="win-a">●</span> {nameA}</span>
@@ -425,7 +481,7 @@ export default function Compare() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Panel>
       </div>
     </div>
   );

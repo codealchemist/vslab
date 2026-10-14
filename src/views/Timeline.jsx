@@ -7,7 +7,7 @@ import { fmtDate, fmtNum } from '../lib/format.js';
 import { toTsv } from '../lib/clipboard.js';
 import { downloadFile, exportPdfReport, nodeToPng, toCsv } from '../lib/export.js';
 import { timelineRows } from '../lib/reports.js';
-import { InfoButton, SectionActions, StatusPill, STATUS_VAR } from '../components/ui.jsx';
+import { InfoButton, SectionActions, StatusPill, STATUS_VAR, Panel } from '../components/ui.jsx';
 import { useInfo } from '../components/info.jsx';
 import BiomarkerChart from '../charts/BiomarkerChart.jsx';
 
@@ -17,15 +17,17 @@ function ChartCard({ code, points, registerNode }) {
   const ref = useRef(null);
   const meta = getBiomarker(code, points[0]);
   const last = points.at(-1);
+  const prev = points.at(-2);
   return (
-    <div
-      className="card"
+    <Panel
+      id={`timeline.${code}`}
       ref={(n) => {
         ref.current = n;
         registerNode(code, n);
       }}
-    >
-      <div className="card-head" style={{ marginBottom: 8 }}>
+      headStyle={{ marginBottom: 8 }}
+      // The title already shows the latest value and status; collapsed, add how it moved since the previous result.
+      title={
         <div>
           <h3>
             {meta.name[lang] || meta.name.en}
@@ -37,15 +39,26 @@ function ChartCard({ code, points, registerNode }) {
             <StatusPill status={last.status} dir={last.dir} beyond={last.item.beyond} />
           </div>
         </div>
+      }
+      actions={
         <SectionActions
           targetRef={ref}
           getRows={() => toTsv([[meta.name[lang] || meta.name.en, meta.unit], ...points.map((p) => [p.date, p.value])])}
         />
-      </div>
+      }
+      summary={
+        prev && (
+          <>
+            <DiffTag diff={diffTrend(prev.value, last.value, last.range)} />
+            <span className="tiny muted">{t('timeline.since', { date: fmtDate(prev.date, lang) })}</span>
+          </>
+        )
+      }
+    >
       <div className="chart-box">
         <BiomarkerChart points={points} unit={meta.unit} />
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -299,9 +312,13 @@ export default function Timeline() {
             ))}
           </div>
 
-          <div className="card" style={{ marginTop: 16 }} ref={tableRef}>
-            <div className="card-head">
-              <h3>{t('timeline.tableTitle')}</h3>
+          <Panel
+            ref={tableRef}
+            id="timeline.table"
+            style={{ marginTop: 16 }}
+            title={<h3>{t('timeline.tableTitle')}</h3>}
+            summary={<span>{t('timeline.tableSummary', { n: selected.length, m: results.length })}</span>}
+            actions={
               <div className="row wrap">
               <button className={`chip ${showDiff ? 'on' : ''}`} onClick={() => setShowDiff((d) => !d)} aria-pressed={showDiff} data-no-capture>
                 <GitCompareArrows size={14} /> {t('timeline.showDiff')}
@@ -315,7 +332,8 @@ export default function Timeline() {
                 ]}
               />
               </div>
-            </div>
+            }
+          >
             <div className="table-wrap">
               <table className="table">
                 <thead>
@@ -354,7 +372,7 @@ export default function Timeline() {
               </table>
             </div>
             {showDiff && <p className="tiny muted" style={{ marginTop: 10 }}>{t('timeline.diffNote')}</p>}
-          </div>
+          </Panel>
         </>
       )}
     </div>

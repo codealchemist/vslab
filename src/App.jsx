@@ -176,8 +176,10 @@ export default function App() {
       <main className="shell">
         <View key={route.tab + (route.resultId || route.friendId || '')} />
         <footer className="footer">
-          <ShieldAlert size={14} />
-          <span className="grow">{t('footer.disclaimer')}</span>
+          <span className="footer-note grow">
+            <ShieldAlert size={14} />
+            <span>{t('footer.disclaimer')}</span>
+          </span>
           <AgentStatus />
           <span className="version num" title={t('footer.version', { version: APP_VERSION })}><BrandName /> v{APP_VERSION}</span>
         </footer>
