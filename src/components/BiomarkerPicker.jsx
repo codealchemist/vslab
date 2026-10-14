@@ -64,7 +64,7 @@ const BiomarkerPicker = forwardRef(function BiomarkerPicker({ options, value, on
   const showList = open && (matches.length > 0 || query.trim());
 
   return (
-    <div className="picker">
+    <div className="bm-picker">
       <div className="search">
         <Search size={15} />
         <input
@@ -92,7 +92,7 @@ const BiomarkerPicker = forwardRef(function BiomarkerPicker({ options, value, on
         />
       </div>
       {showList && (
-        <ul ref={listRef} id={`${id}-list`} className="picker-list" role="listbox" aria-label={placeholder}>
+        <ul ref={listRef} id={`${id}-list`} className="bm-picker-list" role="listbox" aria-label={placeholder}>
           {matches.map((m, i) => (
             <li
               key={m.code}
@@ -107,14 +107,14 @@ const BiomarkerPicker = forwardRef(function BiomarkerPicker({ options, value, on
               }}
               onMouseEnter={() => setActive(i)}
             >
-              <span className="picker-name">{label(m)}</span>
-              <span className="picker-meta tiny muted">
+              <span className="bm-picker-name">{label(m)}</span>
+              <span className="bm-picker-meta tiny muted">
                 {t(`cat.${m.cat}`)}
                 {m.unit ? ` · ${m.unit}` : ''}
               </span>
             </li>
           ))}
-          {!matches.length && <li role="presentation" className="picker-empty small muted">{t('edit.noMatch', { q: query.trim() })}</li>}
+          {!matches.length && <li role="presentation" className="bm-picker-empty small muted">{t('edit.noMatch', { q: query.trim() })}</li>}
         </ul>
       )}
     </div>

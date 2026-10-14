@@ -589,17 +589,17 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .editor-add-row .editor-value .input { height: 38px; }
 
 /* Biomarker search with suggestions (editor's "add a missing biomarker") */
-.picker { position: relative; min-width: 0; }
-.picker-list {
+.bm-picker { position: relative; min-width: 0; }
+.bm-picker-list {
   position: absolute; z-index: 30; top: calc(100% + 4px); left: 0; right: 0; max-height: 280px; overflow-y: auto;
   margin: 0; padding: 4px; list-style: none; background: var(--surface); border: 1px solid var(--border);
   border-radius: 12px; box-shadow: var(--shadow-lg);
 }
-.picker-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
-.picker-list li.active { background: var(--surface-3); }
-.picker-name { min-width: 0; color: var(--text); }
-.picker-meta { flex: none; white-space: nowrap; }
-.picker-list .picker-empty { cursor: default; }
+.bm-picker-list li { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+.bm-picker-list li.active { background: var(--surface-3); }
+.bm-picker-name { min-width: 0; color: var(--text); }
+.bm-picker-meta { flex: none; white-space: nowrap; }
+.bm-picker-list .bm-picker-empty { cursor: default; }
 .editor-actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; margin: 0 -20px -20px; background: var(--surface); border-top: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); }
 .edited-badge { color: var(--accent); background: var(--accent-soft); }
 @media (max-width: 640px) {
@@ -610,7 +610,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .editor-value { grid-area: value; }
   .editor-row .icon-btn { grid-area: btn; }
   .editor-add-row { grid-template-columns: 1fr 1fr; }
-  .editor-add-row .picker { grid-column: 1 / -1; }
+  .editor-add-row .bm-picker { grid-column: 1 / -1; }
   .editor-actions { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); margin: 0 -16px -16px; padding: 12px 16px; }
 }
 
